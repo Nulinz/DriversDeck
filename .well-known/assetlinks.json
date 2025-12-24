@@ -1,0 +1,16 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.driversdeck.app",
+      "sha256_cert_fingerprints": [
+        "9C:6B:25:D4:34:22:B2:62:FB:65:AF:EA:DE:52:01:7F:4E:3F:02:EE:FD:39:ED:E7:1C:97:A9:9B:08:CD:45:64",
+        "55:51:C3:4E:FD:5B:C7:47:FB:CA:7A:6E:40:DC:ED:0F:DA:63:E5:8D:C8:04:D3:1F:78:C3:C7:13:0B:60:15:18",
+        "6E:3F:22:07:13:03:9B:8B:F2:C3:A4:35:48:E7:C2:21:70:D9:CC:80:62:9C:75:74:AF:E9:2A:9D:73:B4:85:17"
+      ]
+    }
+  }
+]
