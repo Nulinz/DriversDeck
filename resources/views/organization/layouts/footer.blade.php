@@ -36,7 +36,7 @@
     ]);
 @endphp
 
-<script>
+<!-- <script>
     var subscriptionExpiry = @json($expiry);
 
     if (!subscriptionExpiry) {
@@ -87,7 +87,7 @@
         // prevent background scrolling
         document.body.style.overflow = 'hidden';
     }
-</script>
+</script> -->
 
 </body>
 </html>

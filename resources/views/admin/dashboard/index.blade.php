@@ -183,7 +183,7 @@
                                                 <th>Package</th>
                                                 <th>Amount</th>
                                                 <th>Status</th>
-                                                <th>Subscription Status</th>
+                                                <!-- <th>Subscription Status</th> -->
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -196,7 +196,7 @@
                                                     <td>{{ $p->pk->plan ?? 0 }}</td>
                                                     <td>{{ $p->pk->amount ?? 0 }}</td>
                                                     <td>{{ $p->status}}</td>
-                                                    <td><span class="badge badge-success-light">Paid</span></td>
+                                                    <!-- <td><span class="badge badge-success-light">Paid</span></td> -->
                                                 </tr>
                                             @endforeach
                                             {{-- <tr>

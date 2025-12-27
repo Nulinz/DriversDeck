@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\organization;
+namespace App\Http\Controllers\Organization;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -127,7 +127,7 @@ class VacancyController_org extends Controller
         ->whereHas('driver', function ($query) {
             $query->where('type', 'permanent');
         })
-        ->with('driver')
+        ->with('driver.license')
         ->get()
         ->map(function ($apply) use ($subscriptionLimit) {
             
@@ -146,6 +146,7 @@ class VacancyController_org extends Controller
                 'driver_phone' => $apply->driver->phone ?? '-',
                 'location' =>  $loc_name ?? '-',
                 'ap_status' => $apply->status ?? '-',
+                'license_type' => $apply->driver->license->cov ?? '-', // <-- new column
                 'conflict' => $hasConflict,
                 'subscription_limit_reached' => $subscriptionLimit && $apply->status != 'Hired',
                 'driver' => [

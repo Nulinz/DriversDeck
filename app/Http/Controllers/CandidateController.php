@@ -11,292 +11,166 @@ use App\Models\DriverTypeChangeRequest;
 class CandidateController extends Controller
 {
 
-// public function candidate()
-// {
-//     // Get approved drivers with proper aliasing
-//     $approvedDrivers = DB::table('driver as d')
-//         ->leftJoin('driver_details as dd', 'd.id', '=', 'dd.d_id')
-//         ->leftJoin('license as l', 'd.id', '=', 'l.d_id')
-//         ->where('d.status', 'approved')
-//         ->select(
-//             'd.id as driver_id',
-//             'd.name',
-//             'd.phone',
-//             'd.type',
-//             'd.active_status',
-//             'd.location',
-//             'd.created_at',
-//             'dd.*',
-//             'l.cov'
-//         )
-//         ->get()
-//         ->map(function ($list) {
-//             // Use driver_id instead of id
-//             $list->id = $list->driver_id;
-//             $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
-//             return $list;
-//         });
+    public function candidate(Request $request)
+    {
+        // Get the type from query parameter
+        $type = $request->query('type');
 
-//     // Get rejected drivers with proper aliasing
-//     $rejectedDrivers = DB::table('driver as d')
-//         ->leftJoin('driver_details as dd', 'd.id', '=', 'dd.d_id')
-//         ->leftJoin('license as l', 'd.id', '=', 'l.d_id')
-//         ->where('d.status', 'rejected')
-//         ->select(
-//             'd.id as driver_id',
-//             'd.name',
-//             'd.phone',
-//             'd.type',
-//             'd.active_status',
-//             'd.location',
-//             'd.created_at',
-//             'dd.*',
-//             'l.cov'
-//         )
-//         ->get()
-//         ->map(function ($list) {
-//             // Use driver_id instead of id
-//             $list->id = $list->driver_id;
-//             $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
-//             return $list;
-//         });
+        // Build approved drivers query
+        $approvedQuery = DB::table('driver as d')
+            ->leftJoin('driver_details as dd', 'd.id', '=', 'dd.d_id')
+            ->leftJoin('license as l', 'd.id', '=', 'l.d_id')
+            ->where('d.status', 'approved');
 
-//     // Get unique COV values
-//     $covValues = DB::table('license')
-//         ->select('cov')
-//         ->whereNotNull('cov')
-//         ->pluck('cov')
-//         ->toArray();
+        // Apply type filter if provided
+        if ($type && in_array($type, ['acting', 'permanent'])) {
+            $approvedQuery->where('d.type', $type);
+        }
 
-//     // Flatten comma-separated values into array
-//     $allCov = [];
-//     foreach ($covValues as $cov) {
-//         $items = array_map('trim', explode(',', $cov));
-//         $allCov = array_merge($allCov, $items);
-//     }
+        // Get approved drivers with proper aliasing
+        $approvedDrivers = $approvedQuery
+            ->select(
+                'd.id as driver_id',
+                'd.name',
+                'd.phone',
+                'd.type',
+                'd.active_status',
+                'd.location',
+                'd.created_at',
+                'dd.*',
+                'l.cov'
+            )
+            ->get()
+            ->map(function ($list) {
+                // Use driver_id instead of id
+                $list->id = $list->driver_id;
+                $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
+                return $list;
+            });
+        // Build rejected drivers query
+        $rejectedQuery = DB::table('driver as d')
+            ->leftJoin('driver_details as dd', 'd.id', '=', 'dd.d_id')
+            ->leftJoin('license as l', 'd.id', '=', 'l.d_id')
+            ->where('d.status', 'rejected');
 
-//     $allCov = array_unique($allCov);
+        // Apply type filter if provided
+        if ($type && in_array($type, ['acting', 'permanent'])) {
+            $rejectedQuery->where('d.type', $type);
+        }
 
-//     return view('admin.candidate.index', compact('approvedDrivers', 'rejectedDrivers', 'allCov'));
-// }
-// public function candidate(Request $request)
-// {
-//     // Get the type from query parameter
-//     $type = $request->query('type');
-    
-//     // Build approved drivers query
-//     $approvedQuery = DB::table('driver as d')
-//         ->leftJoin('driver_details as dd', 'd.id', '=', 'dd.d_id')
-//         ->leftJoin('license as l', 'd.id', '=', 'l.d_id')
-//         ->where('d.status', 'approved')
-//         ->where(function($query) {
-//             // Show permanent drivers OR acting drivers with subscription = 'yes'
-//             $query->where('d.type', 'permanent')
-//                   ->orWhere(function($q) {
-//                       $q->where('d.type', 'acting')
-//                         ->where('d.subscription', 'yes');
-//                   });
-//         });
-    
-//     // Apply type filter if provided
-//     if ($type && in_array($type, ['acting', 'permanent'])) {
-//         $approvedQuery->where('d.type', $type);
-//     }
-    
-//     // Get approved drivers with proper aliasing
-//     $approvedDrivers = $approvedQuery
-//         ->select(
-//             'd.id as driver_id',
-//             'd.name',
-//             'd.phone',
-//             'd.type',
-//             'd.active_status',
-//             'd.location',
-//             'd.created_at',
-//             'dd.*',
-//             'l.cov'
-//         )
-//         ->get()
-//         ->map(function ($list) {
-//             // Use driver_id instead of id
-//             $list->id = $list->driver_id;
-//             $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
-//             return $list;
-//         });
-        
-//     // Build rejected drivers query
-//     $rejectedQuery = DB::table('driver as d')
-//         ->leftJoin('driver_details as dd', 'd.id', '=', 'dd.d_id')
-//         ->leftJoin('license as l', 'd.id', '=', 'l.d_id')
-//         ->where('d.status', 'rejected')
-//         ->where(function($query) {
-//             // Show permanent drivers OR acting drivers with subscription = 'yes'
-//             $query->where('d.type', 'permanent')
-//                   ->orWhere(function($q) {
-//                       $q->where('d.type', 'acting')
-//                         ->where('d.subscription', 'yes');
-//                   });
-//         });
-    
-//     // Apply type filter if provided
-//     if ($type && in_array($type, ['acting', 'permanent'])) {
-//         $rejectedQuery->where('d.type', $type);
-//     }
-    
-//     // Get rejected drivers with proper aliasing
-//     $rejectedDrivers = $rejectedQuery
-//         ->select(
-//             'd.id as driver_id',
-//             'd.name',
-//             'd.phone',
-//             'd.type',
-//             'd.active_status',
-//             'd.location',
-//             'd.created_at',
-//             'dd.*',
-//             'l.cov'
-//         )
-//         ->get()
-//         ->map(function ($list) {
-//             // Use driver_id instead of id
-//             $list->id = $list->driver_id;
-//             $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
-//             return $list;
-//         });
-        
-//     // Get unique COV values
-//     $covValues = DB::table('license')
-//         ->select('cov')
-//         ->whereNotNull('cov')
-//         ->pluck('cov')
-//         ->toArray();
-        
-//     // Flatten comma-separated values into array
-//     $allCov = [];
-//     foreach ($covValues as $cov) {
-//         $items = array_map('trim', explode(',', $cov));
-//         $allCov = array_merge($allCov, $items);
-//     }
-//     $allCov = array_unique($allCov);
-    
-//     return view('admin.candidate.index', compact('approvedDrivers', 'rejectedDrivers', 'allCov', 'type'));
-// }
-public function candidate(Request $request)
-{
-    // Get the type from query parameter
-    $type = $request->query('type');
+        // Get rejected drivers with proper aliasing
+        $rejectedDrivers = $rejectedQuery
+            ->select(
+                'd.id as driver_id',
+                'd.name',
+                'd.phone',
+                'd.type',
+                'd.active_status',
+                'd.location',
+                'd.created_at',
+                'dd.*',
+                'l.cov'
+            )
+            ->get()
+            ->map(function ($list) {
+                // Use driver_id instead of id
+                $list->id = $list->driver_id;
+                $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
+                return $list;
+            });
 
-    // Build approved drivers query
-    $approvedQuery = DB::table('driver as d')
-        ->leftJoin('driver_details as dd', 'd.id', '=', 'dd.d_id')
-        ->leftJoin('license as l', 'd.id', '=', 'l.d_id')
-        ->where('d.status', 'approved');
+        $pendingQuery = DB::table('driver as d')
+            ->leftJoin('driver_details as dd', 'd.id', '=', 'dd.d_id')
+            ->leftJoin('license as l', 'd.id', '=', 'l.d_id')
+            ->where('d.status', 'pending');
 
-    // Apply type filter if provided
-    if ($type && in_array($type, ['acting', 'permanent'])) {
-        $approvedQuery->where('d.type', $type);
+        // Keep type filter if needed
+        if ($type && in_array($type, ['acting', 'permanent'])) {
+            $pendingQuery->where('d.type', $type)
+                ->whereExists(function ($query) {
+                    $query->select(DB::raw(1))
+                        ->from('approval_reasons as ar')
+                        ->whereColumn('ar.user_id', 'd.id')
+                        ->where('ar.action', 'pending');
+                });
+        }
+
+        $pendingDrivers = $pendingQuery
+            ->select(
+                'd.id as driver_id',
+                'd.name',
+                'd.phone',
+                'd.type',
+                'd.active_status',
+                'd.location',
+                'd.created_at',
+                'dd.*',
+                'l.cov'
+            )
+            ->get()
+            ->map(function ($list) {
+                $list->id = $list->driver_id;
+                $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
+                return $list;
+            });
+
+        // Get unique COV values
+        $covValues = DB::table('license')
+            ->select('cov')
+            ->whereNotNull('cov')
+            ->pluck('cov')
+            ->toArray();
+        // Flatten comma-separated values into array
+        $allCov = [];
+        foreach ($covValues as $cov) {
+            $items = array_map('trim', explode(',', $cov));
+            $allCov = array_merge($allCov, $items);
+        }
+        $allCov = array_unique($allCov);
+        return view('admin.candidate.index', compact(
+            'approvedDrivers',
+            'rejectedDrivers',
+            'pendingDrivers',
+            'allCov',
+            'type'
+        ));
+
     }
 
-    // Get approved drivers with proper aliasing
-    $approvedDrivers = $approvedQuery
-        ->select(
-            'd.id as driver_id',
-            'd.name',
-            'd.phone',
-            'd.type',
-            'd.active_status',
-            'd.location',
-            'd.created_at',
-            'dd.*',
-            'l.cov'
-        )
-        ->get()
-        ->map(function ($list) {
-            // Use driver_id instead of id
-            $list->id = $list->driver_id;
-            $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
-            return $list;
-        });
-    // Build rejected drivers query
-    $rejectedQuery = DB::table('driver as d')
-        ->leftJoin('driver_details as dd', 'd.id', '=', 'dd.d_id')
-        ->leftJoin('license as l', 'd.id', '=', 'l.d_id')
-        ->where('d.status', 'rejected');
 
-    // Apply type filter if provided
-    if ($type && in_array($type, ['acting', 'permanent'])) {
-        $rejectedQuery->where('d.type', $type);
+    // Add new method to toggle active status
+    public function toggleActiveStatus(Request $request, $id)
+    {
+        try {
+            $driver = Driver::findOrFail($id);
+            $driver->active_status = $request->active_status;
+            $driver->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Active status updated successfully',
+                'new_status' => $driver->active_status
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update active status'
+            ], 500);
+        }
     }
 
-    // Get rejected drivers with proper aliasing
-    $rejectedDrivers = $rejectedQuery
-        ->select(
-            'd.id as driver_id',
-            'd.name',
-            'd.phone',
-            'd.type',
-            'd.active_status',
-            'd.location',
-            'd.created_at',
-            'dd.*',
-            'l.cov'
-        )
-        ->get()
-        ->map(function ($list) {
-            // Use driver_id instead of id
-            $list->id = $list->driver_id;
-            $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
-            return $list;
-        });
-    // Get unique COV values
-    $covValues = DB::table('license')
-        ->select('cov')
-        ->whereNotNull('cov')
-        ->pluck('cov')
-        ->toArray();
-    // Flatten comma-separated values into array
-    $allCov = [];
-    foreach ($covValues as $cov) {
-        $items = array_map('trim', explode(',', $cov));
-        $allCov = array_merge($allCov, $items);
+    // Optional: Add method to get drivers by active status
+    public function getDriversByActiveStatus($status)
+    {
+        $drivers = Driver::where('active_status', $status)
+            ->with('details')
+            ->get()->map(function ($list) {
+                $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
+                return $list;
+            });
+
+        return $drivers;
     }
-    $allCov = array_unique($allCov);
-    return view('admin.candidate.index', compact('approvedDrivers', 'rejectedDrivers', 'allCov', 'type'));
-}
-
-// Add new method to toggle active status
-public function toggleActiveStatus(Request $request, $id)
-{
-    try {
-        $driver = Driver::findOrFail($id);
-        $driver->active_status = $request->active_status;
-        $driver->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Active status updated successfully',
-            'new_status' => $driver->active_status
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to update active status'
-        ], 500);
-    }
-}
-
-// Optional: Add method to get drivers by active status
-public function getDriversByActiveStatus($status)
-{
-    $drivers = Driver::where('active_status', $status)
-        ->with('details')
-        ->get()->map(function ($list) {
-            $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
-            return $list;
-        });
-
-    return $drivers;
-}
 
     public function toggleStatus(Request $request, $id)
     {
@@ -312,7 +186,7 @@ public function getDriversByActiveStatus($status)
     public function profile($id)
     {
 
-        $dr =  Driver::find($id);
+        $dr = Driver::find($id);
 
         // $latestWithdraw = DB::table('bank_withdraw')
         //     ->where('type', $dr->type)
@@ -504,239 +378,239 @@ public function getDriversByActiveStatus($status)
 
 
 
-        return view('admin.candidate.profile', compact('driver', 'hiredTrips', 'feedbacks', 'subscriptions', 'referrals', 'rem','dr'));
+        return view('admin.candidate.profile', compact('driver', 'hiredTrips', 'feedbacks', 'subscriptions', 'referrals', 'rem', 'dr'));
     }
-public function updateProfile(Request $request, $id)
-{
-    $request->validate([
-        'gender' => 'required|in:Male,Female,Other',
-        'b_group' => 'required|string',
-        'c_ad' => 'required|string|max:255',
-        'c_city' => 'required|string|max:100',
-        'c_state' => 'required|string|max:100',
-        'c_pin' => 'nullable|string|max:10',
-        'about' => 'nullable|string|max:500',
-        'exp_year' => 'nullable|integer|min:0',
-        'exp_mon' => 'nullable|integer|min:0|max:11',
-        'p_com_name' => 'nullable|string|max:255',
-        'rel_date' => 'nullable|date',
-        'com_location' => 'nullable|string|max:255',
-        'contact_number' => 'nullable|string|max:15',
-        'current_salary' => 'nullable|numeric',
-        'pf' => 'nullable|string|max:100',
-        'expert_salary' => 'nullable|numeric',
-        'job_loc' => 'nullable|string|max:255',
-        'agreement' => 'nullable|string|max:255',
-        'years' => 'nullable|integer'
-    ]);
-
-    $driver = Driver::findOrFail($id);
-
-    // Update driver data (only editable fields)
-    $driver->update([
-        'gender' => $request->gender,
-        'b_group' => $request->b_group
-    ]);
-
-    // Update driver_details table
-    DB::table('driver_details')
-        ->where('d_id', $id)
-        ->update([
-            'c_ad' => $request->c_ad,
-            'c_city' => $request->c_city,
-            'c_state' => $request->c_state,
-            'c_pin' => $request->c_pin,
-            'about' => $request->about,
-            'exp_year' => $request->exp_year,
-            'exp_mon' => $request->exp_mon,
-            'p_com_name' => $request->p_com_name,
-            'rel_date' => $request->rel_date,
-            'com_location' => $request->com_location,
-            'contact_number' => $request->contact_number,
-            'current_salary' => $request->current_salary,
-            'pf' => $request->pf,
-            'expert_salary' => $request->expert_salary,
-            'job_loc' => $request->job_loc,
-            'agreement' => $request->agreement,
-            'years' => $request->years,
-            'updated_at' => now()
+    public function updateProfile(Request $request, $id)
+    {
+        $request->validate([
+            'gender' => 'required|in:Male,Female,Other',
+            'b_group' => 'required|string',
+            'c_ad' => 'required|string|max:255',
+            'c_city' => 'required|string|max:100',
+            'c_state' => 'required|string|max:100',
+            'c_pin' => 'nullable|string|max:10',
+            'about' => 'nullable|string|max:500',
+            'exp_year' => 'nullable|integer|min:0',
+            'exp_mon' => 'nullable|integer|min:0|max:11',
+            'p_com_name' => 'nullable|string|max:255',
+            'rel_date' => 'nullable|date',
+            'com_location' => 'nullable|string|max:255',
+            'contact_number' => 'nullable|string|max:15',
+            'current_salary' => 'nullable|numeric',
+            'pf' => 'nullable|string|max:100',
+            'expert_salary' => 'nullable|numeric',
+            'job_loc' => 'nullable|string|max:255',
+            'agreement' => 'nullable|string|max:255',
+            'years' => 'nullable|integer'
         ]);
 
-    return redirect()->back()->with('success', 'Profile updated successfully!');
-}
+        $driver = Driver::findOrFail($id);
 
+        // Update driver data (only editable fields)
+        $driver->update([
+            'gender' => $request->gender,
+            'b_group' => $request->b_group
+        ]);
 
-// Method to show type change requests
-public function showTypeChangeRequests() 
-{
-    // Fetch all requests with driver information
-    $requests = DriverTypeChangeRequest::with('driver')
-        ->orderBy('created_at', 'desc')
-        ->get();
+        // Update driver_details table
+        DB::table('driver_details')
+            ->where('d_id', $id)
+            ->update([
+                'c_ad' => $request->c_ad,
+                'c_city' => $request->c_city,
+                'c_state' => $request->c_state,
+                'c_pin' => $request->c_pin,
+                'about' => $request->about,
+                'exp_year' => $request->exp_year,
+                'exp_mon' => $request->exp_mon,
+                'p_com_name' => $request->p_com_name,
+                'rel_date' => $request->rel_date,
+                'com_location' => $request->com_location,
+                'contact_number' => $request->contact_number,
+                'current_salary' => $request->current_salary,
+                'pf' => $request->pf,
+                'expert_salary' => $request->expert_salary,
+                'job_loc' => $request->job_loc,
+                'agreement' => $request->agreement,
+                'years' => $request->years,
+                'updated_at' => now()
+            ]);
 
-    return view('admin.driver_change_requests', compact('requests'));
-}
-
-// Method to approve/reject driver type change
-public function approveDriverTypeChange($requestId, Request $request) 
-{
-    $changeRequest = DriverTypeChangeRequest::find($requestId);
-
-    if (!$changeRequest) {
-        return redirect()->back()->with('error', 'Request not found.');
+        return redirect()->back()->with('success', 'Profile updated successfully!');
     }
 
-    if ($changeRequest->request_status !== 'pending') {
-        return redirect()->back()->with('error', 'No pending request found.');
+
+    // Method to show type change requests
+    public function showTypeChangeRequests()
+    {
+        // Fetch all requests with driver information
+        $requests = DriverTypeChangeRequest::with('driver')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.driver_change_requests', compact('requests'));
     }
 
-    $driver = $changeRequest->driver;
-    
-    if (!$driver) {
-        return redirect()->back()->with('error', 'Driver not found.');
-    }
+    // Method to approve/reject driver type change
+    public function approveDriverTypeChange($requestId, Request $request)
+    {
+        $changeRequest = DriverTypeChangeRequest::find($requestId);
 
-    if ($request->action === 'approve') {
-        // Approve request → update driver type and mark request as approved
-        $driver->type = $changeRequest->change_type_to;
-        $driver->save();
-        
-        $changeRequest->request_status = 'approved';
-        $changeRequest->save();
-
-        return redirect()->back()->with('success', 'Driver type updated successfully.');
-        
-    } elseif ($request->action === 'reject') {
-        // Reject request → mark request as rejected
-        $changeRequest->request_status = 'rejected';
-        $changeRequest->save();
-
-        return redirect()->back()->with('success', 'Driver type change request rejected.');
-    }
-
-    return redirect()->back()->with('error', 'Invalid action.');
-}
-
-// Method to create a new type change request (for API or form submission)
-public function createTypeChangeRequest(Request $request)
-{
-    $driverId = $request->driver_id;
-    $newType = $request->change_type_to;
-
-    // Validate input
-    $request->validate([
-        'driver_id' => 'required|exists:driver,id',
-        'change_type_to' => 'required|string',
-    ]);
-
-    $driver = Driver::find($driverId);
-    
-    if (!$driver) {
-        return response()->json(['error' => 'Driver not found'], 404);
-    }
-
-    // Check if driver already has a pending request
-    if ($driver->hasPendingTypeChangeRequest()) {
-        return response()->json(['error' => 'Driver already has a pending type change request'], 400);
-    }
-
-    // Create new type change request
-    $changeRequest = DriverTypeChangeRequest::create([
-        'driver_id' => $driverId,
-        'previous_type' => $driver->type,
-        'change_type_to' => $newType,
-        'request_status' => 'pending',
-    ]);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Type change request submitted successfully',
-        'request_id' => $changeRequest->id
-    ]);
-}
-
-// Method to get driver's type change history
-public function getDriverTypeChangeHistory($driverId)
-{
-    $driver = Driver::find($driverId);
-    
-    if (!$driver) {
-        return response()->json(['error' => 'Driver not found'], 404);
-    }
-
-    $history = $driver->typeChangeRequests()
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-    return response()->json([
-        'driver' => $driver,
-        'history' => $history
-    ]);
-}
-public function exportDriverData(Request $request)
-{
-    try {
-        $type = $request->query('type');
-        $status = $request->query('status', 'approved'); // approved or rejected
-        
-        // Build query - only from driver table
-        $query = DB::table('driver')
-            ->where('status', $status)
-            ->where(function($query) {
-                $query->where('type', 'permanent')
-                      ->orWhere(function($q) {
-                          $q->where('type', 'acting');
-                      });
-            });
-        
-        // Apply type filter if provided
-        if ($type && in_array($type, ['acting', 'permanent'])) {
-            $query->where('type', $type);
+        if (!$changeRequest) {
+            return redirect()->back()->with('error', 'Request not found.');
         }
-        
-        // Get all driver data from driver table only
-        $drivers = $query->select(
-            'id',
-            'name',
-            'phone',
-            'type',
-            'gender',
-            'marital_status',
-            'b_group',
-            'location',
-            'district',
-            'l_no',
-            'ad_num',
-            'ref_code',
-            'subscription',
-            'active_status',
-            'status',
-            'created_at',
-            'updated_at'
-        )->get()->map(function ($driver) {
-            // Get location name if location_active table exists
-            $locationName = DB::table('location_active')
-                ->where('id', $driver->location)
-                ->value('location');
-            
-            $driver->location_name = $locationName ?? 'N/A';
-            
-            return $driver;
-        });
-        
+
+        if ($changeRequest->request_status !== 'pending') {
+            return redirect()->back()->with('error', 'No pending request found.');
+        }
+
+        $driver = $changeRequest->driver;
+
+        if (!$driver) {
+            return redirect()->back()->with('error', 'Driver not found.');
+        }
+
+        if ($request->action === 'approve') {
+            // Approve request → update driver type and mark request as approved
+            $driver->type = $changeRequest->change_type_to;
+            $driver->save();
+
+            $changeRequest->request_status = 'approved';
+            $changeRequest->save();
+
+            return redirect()->back()->with('success', 'Driver type updated successfully.');
+
+        } elseif ($request->action === 'reject') {
+            // Reject request → mark request as rejected
+            $changeRequest->request_status = 'rejected';
+            $changeRequest->save();
+
+            return redirect()->back()->with('success', 'Driver type change request rejected.');
+        }
+
+        return redirect()->back()->with('error', 'Invalid action.');
+    }
+
+    // Method to create a new type change request (for API or form submission)
+    public function createTypeChangeRequest(Request $request)
+    {
+        $driverId = $request->driver_id;
+        $newType = $request->change_type_to;
+
+        // Validate input
+        $request->validate([
+            'driver_id' => 'required|exists:driver,id',
+            'change_type_to' => 'required|string',
+        ]);
+
+        $driver = Driver::find($driverId);
+
+        if (!$driver) {
+            return response()->json(['error' => 'Driver not found'], 404);
+        }
+
+        // Check if driver already has a pending request
+        if ($driver->hasPendingTypeChangeRequest()) {
+            return response()->json(['error' => 'Driver already has a pending type change request'], 400);
+        }
+
+        // Create new type change request
+        $changeRequest = DriverTypeChangeRequest::create([
+            'driver_id' => $driverId,
+            'previous_type' => $driver->type,
+            'change_type_to' => $newType,
+            'request_status' => 'pending',
+        ]);
+
         return response()->json([
             'success' => true,
-            'data' => $drivers
+            'message' => 'Type change request submitted successfully',
+            'request_id' => $changeRequest->id
         ]);
-        
-    } catch (\Exception $e) {
-        \Log::error('Export Driver Data Error: ' . $e->getMessage());
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to fetch driver data',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
+
+    // Method to get driver's type change history
+    public function getDriverTypeChangeHistory($driverId)
+    {
+        $driver = Driver::find($driverId);
+
+        if (!$driver) {
+            return response()->json(['error' => 'Driver not found'], 404);
+        }
+
+        $history = $driver->typeChangeRequests()
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'driver' => $driver,
+            'history' => $history
+        ]);
+    }
+    public function exportDriverData(Request $request)
+    {
+        try {
+            $type = $request->query('type');
+            $status = $request->query('status', 'approved'); // approved or rejected
+
+            // Build query - only from driver table
+            $query = DB::table('driver')
+                ->where('status', $status)
+                ->where(function ($query) {
+                    $query->where('type', 'permanent')
+                        ->orWhere(function ($q) {
+                            $q->where('type', 'acting');
+                        });
+                });
+
+            // Apply type filter if provided
+            if ($type && in_array($type, ['acting', 'permanent'])) {
+                $query->where('type', $type);
+            }
+
+            // Get all driver data from driver table only
+            $drivers = $query->select(
+                'id',
+                'name',
+                'phone',
+                'type',
+                'gender',
+                'marital_status',
+                'b_group',
+                'location',
+                'district',
+                'l_no',
+                'ad_num',
+                'ref_code',
+                'subscription',
+                'active_status',
+                'status',
+                'created_at',
+                'updated_at'
+            )->get()->map(function ($driver) {
+                // Get location name if location_active table exists
+                $locationName = DB::table('location_active')
+                    ->where('id', $driver->location)
+                    ->value('location');
+
+                $driver->location_name = $locationName ?? 'N/A';
+
+                return $driver;
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $drivers
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Export Driver Data Error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch driver data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

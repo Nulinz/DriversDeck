@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Models\Driver;
 use App\Models\Corporate;
 
-class OtpHelper
+class OtpService
 {
    
     public function sendOtp($phone, $userType = 'driver')

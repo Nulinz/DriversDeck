@@ -6,7 +6,7 @@ use App\Http\Controllers\CorprateController;
 use App\Http\Controllers\CustomerReport;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\organization\AuthController_org;
+use App\Http\Controllers\Organization\AuthController_org;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\RequestController;
@@ -67,10 +67,10 @@ Route::get('/admin/trip_canel', [TripCanelController::class, 'tripcanel'])->name
 Route::get('/admin/change_type', [ChangeTypeController::class, 'changetype'])->name('admin.change_type.change_type');
 
 //org Middleware....
-Route::get('/organization/login', [App\Http\Controllers\organization\AuthController_org::class, 'login'])->name('auth.login.org');
+Route::get('/organization/login', [App\Http\Controllers\Organization\AuthController_org::class, 'login'])->name('auth.login.org');
 
 // organization group routes
-Route::prefix('organization')->name('organization.')->namespace('App\Http\Controllers\organization')->middleware(['auth:corporate'])->group(function () {
+Route::prefix('organization')->name('organization.')->namespace('App\Http\Controllers\Organization')->middleware(['auth:corporate'])->group(function () {
     // auth
 
     Route::post('/login_check', 'AuthController_org@login_check')->name('auth.login_check');
@@ -119,7 +119,7 @@ Route::prefix('organization')->name('organization.')->namespace('App\Http\Contro
 // landing routes
 Route::get('/', [LandingController::class, 'landing'])->name('landing.index');
 
-Route::name('landing.')->namespace('App\Http\Controllers\landing')->group(function () {
+Route::name('landing.')->namespace('App\Http\Controllers\Landing')->group(function () {
 
     // about
     Route::get('/about', 'LandingController@about')->name('landing.about');

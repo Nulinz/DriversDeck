@@ -48,12 +48,14 @@
                                             </td>
                                             <td>{{ $driver->loc ?? 'No location' }}</td>
                                             <td>
-                                                <span class="{{ $driver->status === 'approved' ? 'badge bg-success' : ($driver->status === 'rejected' ? 'badge bg-danger' : 'badge bg-warning') }}">
+                                                <span
+                                                    class="{{ $driver->status === 'approved' ? 'badge bg-success' : ($driver->status === 'rejected' ? 'badge bg-danger' : 'badge bg-warning') }}">
                                                     {{ ucfirst($driver->status) }}
                                                 </span>
                                             </td>
                                             <td>
-                                                <span class="{{ $driver->subscription_status === 'Paid' ? 'badge bg-success' : 'badge bg-warning' }}">
+                                                <span
+                                                    class="{{ $driver->subscription_status === 'Paid' ? 'badge bg-success' : 'badge bg-warning' }}">
                                                     {{ $driver->subscription_status }}
                                                 </span>
                                             </td>
@@ -66,62 +68,64 @@
                                             </td>
                                             <td>
                                                 @if($driver->payment_screenshot)
-                                                    <button type="button" class="btn btn-sm btn-info" 
-                                                            data-bs-toggle="modal" 
-                                                            data-bs-target="#screenshotModal{{ $driver->id }}">
-                                                       View
+                                                    <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
+                                                        data-bs-target="#screenshotModal{{ $driver->id }}">
+                                                        View
                                                     </button>
 
-                                                    <div class="modal fade" id="screenshotModal{{ $driver->id }}" tabindex="-1" aria-labelledby="screenshotModalLabel{{ $driver->id }}" aria-hidden="true">
+                                                    <div class="modal fade" id="screenshotModal{{ $driver->id }}" tabindex="-1"
+                                                        aria-labelledby="screenshotModalLabel{{ $driver->id }}" aria-hidden="true">
                                                         <div class="modal-dialog modal-sm modal-dialog-centered">
                                                             <div class="modal-content">
                                                                 <div class="modal-header">
-                                                                    <h5 class="modal-title" id="screenshotModalLabel{{ $driver->id }}">
+                                                                    <h5 class="modal-title"
+                                                                        id="screenshotModalLabel{{ $driver->id }}">
                                                                         Payment Screenshot - {{ $driver->name }}
                                                                     </h5>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                                        aria-label="Close"></button>
                                                                 </div>
                                                                 <div class="modal-body text-center">
                                                                     @php
                                                                         $extension = pathinfo($driver->payment_screenshot, PATHINFO_EXTENSION);
                                                                     @endphp
-                                                                    
+
                                                                     @if(in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif']))
-                                                                        <img src="{{ asset('public/' . $driver->payment_screenshot) }}" 
-                                                                            alt="Payment Screenshot" 
-                                                                            class="img-fluid" 
+                                                                        <img src="{{ asset('public/' . $driver->payment_screenshot) }}"
+                                                                            alt="Payment Screenshot" class="img-fluid"
                                                                             style="max-height: 70vh;">
                                                                     @elseif(strtolower($extension) === 'pdf')
-                                                                        <iframe src="{{ asset($driver->payment_screenshot) }}" 
-                                                                                style="width: 100%; height: 70vh;" 
-                                                                                frameborder="0">
+                                                                        <iframe src="{{ asset($driver->payment_screenshot) }}"
+                                                                            style="width: 100%; height: 70vh;" frameborder="0">
                                                                         </iframe>
                                                                     @else
                                                                         <p class="text-muted">File format not supported for preview</p>
-                                                                        <a href="{{ asset($driver->payment_screenshot) }}" 
-                                                                        target="_blank" 
-                                                                        class="btn btn-primary">
+                                                                        <a href="{{ asset($driver->payment_screenshot) }}"
+                                                                            target="_blank" class="btn btn-primary">
                                                                             Open in New Tab
                                                                         </a>
                                                                     @endif
-                                                                    
+
                                                                     @if($driver->transaction_id || $driver->created_at)
                                                                         <div class="mt-3 p-3 bg-light rounded">
                                                                             @if($driver->transaction_id)
                                                                                 <div class="mb-2">
-                                                                                    <strong>Transaction ID:</strong> {{ $driver->transaction_id }}
+                                                                                    <strong>Transaction ID:</strong>
+                                                                                    {{ $driver->transaction_id }}
                                                                                 </div>
                                                                             @endif
                                                                             @if($driver->created_at)
                                                                                 <div>
-                                                                                    <strong>Transaction Date:</strong> {{ Carbon\Carbon::parse($driver->created_at)->format('d-m-Y') }}
+                                                                                    <strong>Transaction Date:</strong>
+                                                                                    {{ Carbon\Carbon::parse($driver->created_at)->format('d-m-Y') }}
                                                                                 </div>
                                                                             @endif
                                                                         </div>
                                                                     @endif
                                                                 </div>
                                                                 <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                                    <button type="button" class="btn btn-secondary"
+                                                                        data-bs-dismiss="modal">Close</button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -144,82 +148,16 @@
 
                                                         @if(in_array($driver->type, ['acting', 'permanent']))
                                                             {{-- For Acting/Permanent: Reject Button with Modal (Reason Required) --}}
-                                                            <button type="button" class="btn btn-sm btn-danger" 
-                                                                    data-bs-toggle="modal" 
-                                                                    data-bs-target="#rejectModal{{ $driver->id }}">
+                                                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                                                data-bs-target="#rejectModal{{ $driver->id }}">
                                                                 Reject
                                                             </button>
 
                                                             {{-- For Acting/Permanent: Pending Button with Modal (Reason Required) --}}
-                                                            <button type="button" class="btn btn-sm btn-warning" 
-                                                                    data-bs-toggle="modal" 
-                                                                    data-bs-target="#pendingModal{{ $driver->id }}">
+                                                            <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal"
+                                                                data-bs-target="#pendingModal{{ $driver->id }}">
                                                                 Keep Pending
                                                             </button>
-
-                                                            {{-- Reject Modal --}}
-                                                            <div class="modal fade" id="rejectModal{{ $driver->id }}" tabindex="-1" aria-hidden="true">
-                                                                <div class="modal-dialog">
-                                                                    <div class="modal-content">
-                                                                        <form method="POST" action="{{ route('admin.handle.approval.reason') }}">
-                                                                            @csrf
-                                                                            <input type="hidden" name="type" value="{{ $driver->type }}">
-                                                                            <input type="hidden" name="id" value="{{ $driver->id }}">
-                                                                            <input type="hidden" name="action" value="reject">
-                                                                            
-                                                                            <div class="modal-header">
-                                                                                <h5 class="modal-title">Reject {{ ucfirst($driver->type) }} Driver</h5>
-                                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                                            </div>
-                                                                            <div class="modal-body">
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
-                                                                                    <textarea name="reason" class="form-control" rows="4" 
-                                                                                              placeholder="Enter reason for rejection (minimum 10 characters)" 
-                                                                                              required minlength="10" maxlength="500"></textarea>
-                                                                                    <small class="text-muted">Please provide a clear reason (10-500 characters)</small>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="modal-footer">
-                                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                                                <button type="submit" class="btn btn-danger">Submit Rejection</button>
-                                                                            </div>
-                                                                        </form>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            {{-- Pending Modal --}}
-                                                            <div class="modal fade" id="pendingModal{{ $driver->id }}" tabindex="-1" aria-hidden="true">
-                                                                <div class="modal-dialog">
-                                                                    <div class="modal-content">
-                                                                        <form method="POST" action="{{ route('admin.handle.approval.reason') }}">
-                                                                            @csrf
-                                                                            <input type="hidden" name="type" value="{{ $driver->type }}">
-                                                                            <input type="hidden" name="id" value="{{ $driver->id }}">
-                                                                            <input type="hidden" name="action" value="pending">
-                                                                            
-                                                                            <div class="modal-header">
-                                                                                <h5 class="modal-title">Keep {{ ucfirst($driver->type) }} Driver as Pending</h5>
-                                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                                            </div>
-                                                                            <div class="modal-body">
-                                                                                <div class="mb-3">
-                                                                                    <label class="form-label">Reason for Keeping Pending <span class="text-danger">*</span></label>
-                                                                                    <textarea name="reason" class="form-control" rows="4" 
-                                                                                              placeholder="Enter reason for keeping pending (minimum 10 characters)" 
-                                                                                              required minlength="10" maxlength="500"></textarea>
-                                                                                    <small class="text-muted">Please provide a clear reason (10-500 characters)</small>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="modal-footer">
-                                                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                                                <button type="submit" class="btn btn-warning">Submit</button>
-                                                                            </div>
-                                                                        </form>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
                                                         @else
                                                             {{-- For Corporate/Owner: Simple Reject Button (No Reason Required) --}}
                                                             <form method="POST"
@@ -254,6 +192,90 @@
                                     @endforeach
                                 </tbody>
                             </table>
+
+                            {{-- Reject Modal --}}
+                            @foreach($drivers as $driver)
+                                {{-- Reject Modal --}}
+                                <div class="modal fade" id="rejectModal{{ $driver->id }}" tabindex="-1" aria-hidden="true">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form method="POST" action="{{ route('admin.handle.approval.reason') }}">
+                                                @csrf
+                                                <input type="hidden" name="type" value="{{ $driver->type }}">
+                                                <input type="hidden" name="id" value="{{ $driver->id }}">
+                                                <input type="hidden" name="action" value="reject">
+
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Reject
+                                                        {{ ucfirst($driver->type) }} Driver
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Reason for Rejection <span
+                                                                class="text-danger">*</span></label>
+                                                        <textarea name="reason" class="form-control" rows="4"
+                                                            placeholder="Enter reason for rejection (minimum 10 characters)"
+                                                            required minlength="10" maxlength="500"></textarea>
+                                                        <small class="text-muted">Please provide a clear
+                                                            reason (10-500 characters)</small>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-danger">Submit
+                                                        Rejection</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {{-- Pending Modal --}}
+                                <div class="modal fade" id="pendingModal{{ $driver->id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <form method="POST" action="{{ route('admin.handle.approval.reason') }}">
+                                                @csrf
+                                                <input type="hidden" name="type" value="{{ $driver->type }}">
+                                                <input type="hidden" name="id" value="{{ $driver->id }}">
+                                                <input type="hidden" name="action" value="pending">
+
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Keep
+                                                        {{ ucfirst($driver->type) }} Driver as Pending
+                                                    </h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Reason for Keeping Pending
+                                                            <span class="text-danger">*</span></label>
+                                                        <textarea name="reason" class="form-control" rows="4"
+                                                            placeholder="Enter reason for keeping pending (minimum 10 characters)"
+                                                            required minlength="10" maxlength="500"></textarea>
+                                                        <small class="text-muted">Please provide a clear
+                                                            reason (10-500 characters)</small>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary"
+                                                        data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-warning">Submit</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+
+
+                            {{-- Pending Modal --}}
+                            <div class="modal fade" id="pendingModal{{ $driver->id }}" tabindex="-1" aria-hidden="true">
+
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -261,7 +283,7 @@
         </div>
     </main>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             $("#datatables-reponsive").DataTable({
                 responsive: true,
                 ordering: false,
@@ -272,7 +294,7 @@
             });
         });
 
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             $("#datatables-reponsive-2").DataTable({
                 responsive: true,
                 ordering: false,
@@ -280,6 +302,17 @@
                     [5, 10, 25, 50, -1],
                     ["5", "10", "25", "50", "All"]
                 ]
+            });
+        });
+
+
+        document.addEventListener('submit', function () {
+            const modals = document.querySelectorAll('.modal.show');
+            modals.forEach(modal => {
+                const instance = bootstrap.Modal.getInstance(modal);
+                if (instance) {
+                    instance.hide();
+                }
             });
         });
     </script>

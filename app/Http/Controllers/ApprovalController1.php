@@ -10,30 +10,19 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Subscription;
 use Illuminate\Support\Facades\Auth;
 
-class ApprovalController extends Controller
+class ApprovalController1 extends Controller
 {
     public function approval()
     {
         // Get pending drivers + approved acting drivers with subscription == 'no'
         $drivers = Driver::where(function ($query) {
-            // 🔵 Fresh pending registrations ONLY
-            $query->where(function ($q) {
-                $q->where('status', 'pending')
-                    ->whereNotExists(function ($sub) {
-                        $sub->select(DB::raw(1))
-                            ->from('approval_reasons')
-                            ->whereColumn('approval_reasons.user_id', 'driver.id')
-                            ->where('approval_reasons.action', 'pending');
-                    });
-            })
-                // 🔵 Subscription approval cases (UNCHANGED)
+            $query->where('status', 'pending')
                 ->orWhere(function ($q) {
                     $q->where('type', 'acting')
                         ->where('status', 'approved')
                         ->where('subscription', 'progress');
                 });
         })->get()->map(function ($list) {
-
             $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
 
             // Add subscription status for drivers
@@ -82,7 +71,7 @@ class ApprovalController extends Controller
 
     public function handleApproval($type, $id, $action)
     {
-        if (in_array($type, ['acting', 'permanent'])) {
+        if (($type === 'acting') or ($type === 'permanent')) {
             $model = \App\Models\Driver::class;
         } else {
             $model = \App\Models\Corporate::class;
@@ -92,24 +81,23 @@ class ApprovalController extends Controller
 
         if ($action === 'approve') {
             $record->status = 'approved';
-            $record->save();
             $message = ucfirst($type) . ' approved successfully!';
         } elseif ($action === 'reject') {
-            // Acting/permanent must reject with reason
+            // For acting/permanent drivers, reject with reason is handled by handleApprovalWithReason
+            // For corporate/owner, reject without reason
             if (in_array($type, ['acting', 'permanent'])) {
                 return redirect()->back()->with('error', 'Please use the reject button with reason for drivers.');
             }
             $record->status = 'rejected';
-            $record->save();
             $message = ucfirst($type) . ' rejected successfully!';
         } else {
             return redirect()->back()->with('error', 'Invalid action.');
         }
 
-        // Redirect back to Pending page — Pending query will filter out approved/rejected automatically
+        $record->save();
+
         return redirect()->back()->with('success', $message);
     }
-
 
     public function handleApprovalWithReason(Request $request)
     {

@@ -1,25 +1,25 @@
 @extends('organization.layouts.app')
 
 @section('content')
-@if(isset($subscriptionLimit) && $subscriptionLimit)
-    <div class="alert alert-warning mb-3">
-        <div class="d-flex align-items-center justify-content-between">
-            <div>
-                <i class="fa fa-exclamation-triangle me-2"></i>
-                <strong>Subscription Limit:</strong> You have reached the maximum limit of 5 permanent drivers for your current plan.
-                <br>
-                <small>Current hired drivers: {{ $currentHiredCount }}/5</small>
-            </div>
-            <div>
-                <a href="{{ route('auth.register_subscription') }}" 
-                   class="btn btn-primary btn-sm">
-                    <i class="fa fa-arrow-up me-1"></i>
-                    Upgrade Plan
-                </a>
+    @if(isset($subscriptionLimit) && $subscriptionLimit)
+        <div class="alert alert-warning mb-3">
+            <div class="d-flex align-items-center justify-content-between">
+                <div>
+                    <i class="fa fa-exclamation-triangle me-2"></i>
+                    <strong>Subscription Limit:</strong> You have reached the maximum limit of 5 permanent drivers for your
+                    current plan.
+                    <br>
+                    <small>Current hired drivers: {{ $currentHiredCount }}/5</small>
+                </div>
+                <div>
+                    <a href="{{ route('auth.register_subscription') }}" class="btn btn-primary btn-sm">
+                        <i class="fa fa-arrow-up me-1"></i>
+                        Upgrade Plan
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
-@endif
+    @endif
     <main class="content">
         <div class="container-fluid p-0">
             <div class="row mb-xl-3 mb-2">
@@ -61,7 +61,8 @@
                             <div class="d-flex align-items-center justify-content-between mb-0_8">
                                 <h6 class="text-muted fw-bold mb-0">Join Date</h6>
                                 <p class="text-dark fw-bold mb-0">
-                                    {{ \Carbon\Carbon::parse($selectedJob->join_date)->format('d-m-Y') }}</p>
+                                    {{ \Carbon\Carbon::parse($selectedJob->join_date)->format('d-m-Y') }}
+                                </p>
                             </div>
                             <div class="d-flex align-items-center justify-content-between mb-0_8">
                                 <h6 class="text-muted fw-bold mb-0">Salary</h6>
@@ -94,9 +95,10 @@
                                         <th>Name</th>
                                         {{-- <th>Experience</th> --}}
                                         <th>Register Date</th>
-                                        <th>Contact Number</th>
-                                        <th>Location</th>
-                                        <th>Action</th>
+                                        <!-- <th>Contact Number</th>
+                                            <th>Location</th>
+                                            <th>Action</th> -->
+                                        <th>License type</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -106,82 +108,26 @@
                                             <td>{{ $index + 1 }}</td>
                                             <td>
                                                 <img src="{{ asset($apply['image'] ?? '/assets/images/avatar.png') }}"
-                                                    width="40" height="40" class="rounded-circle me-2"
-                                                    alt="Avatar">
+                                                    width="40" height="40" class="rounded-circle me-2" alt="Avatar">
                                                 {{ $apply['driver_name'] }}
                                             </td>
                                             {{-- <td>{{ $apply['experience'] }}</td> --}}
                                             <td>{{ $apply['created_at'] }}</td>
-                                            <td>{{ $apply['driver_phone'] }}</td>
-                                            <td>{{ $apply['location'] }}</td>
+                                            <td>{{ $apply['license_type'] }}</td>
                                             <!-- <td>
-                                                {{-- @if ($apply['ap_status'] == 'Hired')
-                                                    <span class="badge bg-success">Hired</span>
-                                                @elseif($apply['ap_status'] == 'Reject')
-                                                    <span class="badge bg-danger">Rejected</span>
-                                                @elseif($apply['ap_status'] == 'cancelled')
-                                                    <span class="badge bg-danger">Cancelled</span>
-                                                @else
-                                                @endif --}}
-
-                                                @if ($selectedJob->status == 'approve')
-                                                    @if (!$apply['conflict'])
-                                                        <a data-bs-toggle="modal"
-                                                            data-bs-target="#statusModal{{ $apply['id'] }}">
-                                                            <i class="fs-4 text-dark fa fa-fw fa-edit me-3"></i>
-                                                        </a>
-                                                        <a
-                                                            href="{{ route('organization.hired.ft_driver_profile', ['id' => $apply['driver']['id'] ?? '']) }}">
-                                                            <i class="fs-4 text-dark fa fa-external-link-alt"></i>
-                                                        </a>
-                                                    @else
-                                                        <span class="fs-4 text-dark me-3">&times;</span>
-                                                    @endif
-                                                @endif
-                                            </td> -->
-                                            <!-- Action Column in the table -->
-                                                <!-- <td>
-                                                    @if ($selectedJob->status == 'approve')
-                                                        @if (!$apply['conflict'])
-                                                            @php
-                                                                // Check if this specific driver is permanent type
-                                                                $isDriverPermanent = $apply['driver']['type'] ?? '' === 'permanent';
-                                                                // Apply hiring limit only for permanent drivers
-                                                                $canHireThisDriver = !$isDriverPermanent || $canHireMore;
-                                                            @endphp
-                                                            
-                                                            @if ($canHireThisDriver)
-                                                                <a data-bs-toggle="modal" data-bs-target="#statusModal{{ $apply['id'] }}">
-                                                                    <i class="fs-4 text-dark fa fa-fw fa-edit me-3"></i>
-                                                                </a>
-                                                                <a href="{{ route('organization.hired.ft_driver_profile', ['id' => $apply['driver']['id'] ?? '']) }}">
-                                                                    <i class="fs-4 text-dark fa fa-external-link-alt"></i>
-                                                                </a>
-                                                            @else
-                                                                <span class="fs-4 text-muted me-3" title="Permanent driver hiring limit reached for your subscription plan">
-                                                                    <i class="fa fa-lock"></i>
-                                                                </span>
-                                                                <a href="{{ route('organization.hired.ft_driver_profile', ['id' => $apply['driver']['id'] ?? '']) }}">
-                                                                    <i class="fs-4 text-dark fa fa-external-link-alt"></i>
-                                                                </a>
-                                                            @endif
-                                                        @else
-                                                            <span class="fs-4 text-dark me-3">&times;</span>
-                                                        @endif
-                                                    @endif
-                                                </td> -->
-                                            <td>
                                                 @if ($selectedJob->status == 'approve')
                                                     @if (!$apply['conflict'])
                                                         @if (!$apply['subscription_limit_reached'])
                                                             <a data-bs-toggle="modal" data-bs-target="#statusModal{{ $apply['id'] }}">
                                                                 <i class="fs-4 text-dark fa fa-fw fa-edit me-3"></i>
                                                             </a>
-                                                            <a href="{{ route('organization.hired.ft_driver_profile', ['id' => $apply['driver']['id'] ?? '']) }}">
+                                                            <a
+                                                                href="{{ route('organization.hired.ft_driver_profile', ['id' => $apply['driver']['id'] ?? '']) }}">
                                                                 <i class="fs-4 text-dark fa fa-external-link-alt"></i>
                                                             </a>
                                                         @else
-                                                            <span class="fs-4 text-warning me-3" title="Subscription limit reached (5 drivers maximum for your plan)">
+                                                            <span class="fs-4 text-warning me-3"
+                                                                title="Subscription limit reached (5 drivers maximum for your plan)">
                                                                 <i class="fa fa-exclamation-triangle"></i>
                                                             </span>
                                                             <span class="badge bg-warning text-dark">Limit Reached</span>
@@ -190,7 +136,7 @@
                                                         <span class="fs-4 text-dark me-3">&times;</span>
                                                     @endif
                                                 @endif
-                                            </td>
+                                            </td> -->
                                             <td>
                                                 <span
                                                     class="badge bg-{{ $apply['ap_status'] == 'Hired' ? 'success' : 'danger' }}">
@@ -240,7 +186,7 @@
 
     <script src="{{ asset('assets/js/jquery.js') }}"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             // Datatables Responsive
             $("#datatables-reponsive").DataTable({
                 responsive: true,
