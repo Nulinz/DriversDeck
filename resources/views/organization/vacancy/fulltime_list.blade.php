@@ -142,7 +142,6 @@
                                                     class="badge bg-{{ $apply['ap_status'] == 'Hired' ? 'success' : 'danger' }}">
                                                     {{ $apply['ap_status'] }}
                                                 </span>
-
                                             </td>
                                         </tr>
                                     @endforeach

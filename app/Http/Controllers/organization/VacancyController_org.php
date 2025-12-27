@@ -66,7 +66,8 @@ class VacancyController_org extends Controller
 
         //  $jobs = $permanentJobs;
 
-        $jobs = $permanentJobs->concat($actingJobs)->sortByDesc('created_at')->values();;
+        $jobs = $permanentJobs->concat($actingJobs)->sortByDesc('created_at')->values();
+        ;
 
 
 
@@ -87,82 +88,83 @@ class VacancyController_org extends Controller
 
 
 
- public function fulltime_list($id) {
-    // Get full-time job info
-    $selectedJob = PermanentJobs::with('corporate')->where('job_type', 'Full Time')->findOrFail($id);
-    
-    // Format experience and salary
-    $selectedJob->experience = $selectedJob->min_exp . ' - ' . $selectedJob->max_exp . ' Years';
-    $selectedJob->salary = $selectedJob->min_salary . ' - ' . $selectedJob->max_salary;
-    
-    $selectedJob->job_id = $id;
-    
-    // Check corporate subscription and plan
-    $corporate = $selectedJob->corporate;
-    $subscriptionLimit = false;
-    $currentHiredCount = 0;
-    
-    if ($corporate && $corporate->subscription == 'yes') {
-        // Get subscription details
-        $subscription = DB::table('subscription')
-            ->where('f_id', $corporate->id)
-            ->where('plan', 6)
-            ->first();
-        
-        if ($subscription) {
-            // Count current hired permanent drivers for this corporate
-            $currentHiredCount = DB::table('sub_applied')
-                ->join('driver', 'sub_applied.d_id', '=', 'driver.id')
-                ->where('driver.type', 'permanent')
-                ->where('sub_applied.status', 'Hired')
-                ->count();
-            
-            // Check if limit is reached (5 for plan 6)
-            $subscriptionLimit = $currentHiredCount >= 5;
+    public function fulltime_list($id)
+    {
+        // Get full-time job info
+        $selectedJob = PermanentJobs::with('corporate')->where('job_type', 'Full Time')->findOrFail($id);
+
+        // Format experience and salary
+        $selectedJob->experience = $selectedJob->min_exp . ' - ' . $selectedJob->max_exp . ' Years';
+        $selectedJob->salary = $selectedJob->min_salary . ' - ' . $selectedJob->max_salary;
+
+        $selectedJob->job_id = $id;
+
+        // Check corporate subscription and plan
+        $corporate = $selectedJob->corporate;
+        $subscriptionLimit = false;
+        $currentHiredCount = 0;
+
+        if ($corporate && $corporate->subscription == 'yes') {
+            // Get subscription details
+            $subscription = DB::table('subscription')
+                ->where('f_id', $corporate->id)
+                ->where('plan', 6)
+                ->first();
+
+            if ($subscription) {
+                // Count current hired permanent drivers for this corporate
+                $currentHiredCount = DB::table('sub_applied')
+                    ->join('driver', 'sub_applied.d_id', '=', 'driver.id')
+                    ->where('driver.type', 'permanent')
+                    ->where('sub_applied.status', 'Hired')
+                    ->count();
+
+                // Check if limit is reached (5 for plan 6)
+                $subscriptionLimit = $currentHiredCount >= 5;
+            }
         }
+
+        // Get applied permanent drivers
+        $appliedListFullTime = SubApplied::where('p_id', $id)
+            ->whereHas('driver', function ($query) {
+                $query->where('type', 'permanent');
+            })
+            ->with('driver.license')
+            ->get()
+            ->map(function ($apply) use ($subscriptionLimit) {
+
+                $loc_name = DB::table('location_active')
+                    ->where('id', $apply->driver->location)
+                    ->value('location');
+
+                $hasConflict = DB::table('sub_applied')->where('d_id', $apply->d_id)->where('status', 'Hired')->exists();
+
+                return [
+                    'id' => $apply->id,
+                    'created_at' => $apply->created_at->format('d-m-Y'),
+                    'driver_name' => $apply->driver->name ?? '-',
+                    'image' => $apply->driver->img ?? null,
+                    'experience' => $apply->driver->experience ?? '-',
+                    'driver_phone' => $apply->driver->phone ?? '-',
+                    'location' => $loc_name ?? '-',
+                    'ap_status' => $apply->status ?? '-',
+                    'license_type' => $apply->driver->license->cov ?? '-', // <-- new column
+                    'conflict' => $hasConflict,
+                    'subscription_limit_reached' => $subscriptionLimit && $apply->status != 'Hired',
+                    'driver' => [
+                        'id' => $apply->driver->id ?? null,
+                    ],
+                ];
+            });
+
+        return view('organization.vacancy.fulltime_list', compact(
+            'selectedJob',
+            'appliedListFullTime',
+            'currentHiredCount',
+            'subscriptionLimit'
+        ));
     }
-    
-    // Get applied permanent drivers
-    $appliedListFullTime = SubApplied::where('p_id', $id)
-        ->whereHas('driver', function ($query) {
-            $query->where('type', 'permanent');
-        })
-        ->with('driver.license')
-        ->get()
-        ->map(function ($apply) use ($subscriptionLimit) {
-            
-            $loc_name = DB::table('location_active')
-                ->where('id', $apply->driver->location)
-                ->value('location');
-            
-            $hasConflict = DB::table('sub_applied')->where('d_id', $apply->d_id)->where('status', 'Hired')->exists();
-            
-            return [
-                'id' => $apply->id,
-                'created_at' => $apply->created_at->format('d-m-Y'),
-                'driver_name' => $apply->driver->name ?? '-',
-                'image' => $apply->driver->img ?? null,
-                'experience' => $apply->driver->experience ?? '-',
-                'driver_phone' => $apply->driver->phone ?? '-',
-                'location' =>  $loc_name ?? '-',
-                'ap_status' => $apply->status ?? '-',
-                'license_type' => $apply->driver->license->cov ?? '-', // <-- new column
-                'conflict' => $hasConflict,
-                'subscription_limit_reached' => $subscriptionLimit && $apply->status != 'Hired',
-                'driver' => [
-                    'id' => $apply->driver->id ?? null,
-                ],
-            ];
-        });
-    
-    return view('organization.vacancy.fulltime_list', compact(
-        'selectedJob', 
-        'appliedListFullTime', 
-        'currentHiredCount', 
-        'subscriptionLimit'
-    ));
-}
- 
+
 
     public function job_cancel($id)
     {
@@ -197,8 +199,8 @@ class VacancyController_org extends Controller
         ]);
 
         // Step 2: Get selected applicant
-        $sub =  SubApplied::find($id);
-        $per_sub =  PermanentJobs::find($sub->p_id);
+        $sub = SubApplied::find($id);
+        $per_sub = PermanentJobs::find($sub->p_id);
 
 
         if (!$sub) {
@@ -286,11 +288,11 @@ class VacancyController_org extends Controller
             ->whereHas('driver', function ($query) {
                 $query->where('type', 'acting');
             })
-            ->with(['trip', 'driver'])
+            ->with(['trip', 'driver.license'])
             ->get()
             ->map(function ($apply) use ($selectedJob) {
 
-                $loc =   DB::table('location_active')->where('id', $apply->driver->location)->value('location');
+                $loc = DB::table('location_active')->where('id', $apply->driver->location)->value('location');
 
                 $existingTrips = TripApplied::with(['trip'])->where('d_id', $apply->d_id)
                     ->whereIn('status', ['Hired', 'Start'])
@@ -300,7 +302,7 @@ class VacancyController_org extends Controller
                 $hasConflict = $existingTrips->contains(function ($extrips) use ($selectedJob) {
 
                     // log::info($trips);
-
+    
                     $existingStart = Carbon::parse($extrips->trip->st_date)->toDateString();
                     $existingEnd = Carbon::parse($extrips->trip->end_date)->toDateString();
 
@@ -308,32 +310,7 @@ class VacancyController_org extends Controller
                     $newEnd = Carbon::parse($selectedJob->end_date)->toDateString();
 
                     return $existingStart <= $newEnd && $existingEnd >= $newStart;
-
-
-                    // New Trip: 2025-09-05 to 2025-09-10
-
-                    //                     | Existing Start | Existing End | Conflict? | Why?                        |
-                    // | -------------- | ------------ | --------- | --------------------------- |
-                    // | 2025-09-01     | 2025-09-04   | ❌ No      | Ends before new starts      |
-                    // | 2025-09-06     | 2025-09-08   | ✅ Yes     | Fully inside new trip       |
-                    // | 2025-09-01     | 2025-09-06   | ✅ Yes     | Overlaps at start           |
-                    // | 2025-09-08     | 2025-09-12   | ✅ Yes     | Overlaps at end             |
-                    // | 2025-09-01     | 2025-09-15   | ✅ Yes     | Fully wraps around new trip |
-                    // | 2025-09-11     | 2025-09-15   | ❌ No      | Starts after new ends       |
-
-
-
-
-                    // return (
-                    //     ($newStart >= $existingStart && $newStart <= $existingEnd) || // New start is inside existing
-                    //     ($newEnd >= $existingStart && $newEnd <= $existingEnd)
-                    //     // // New start date is within existing trip
-                    //     // ($application->st_date >= $existingStart && $application->st_date <= $existingEnd) ||
-
-                    //     // // New end date is within existing trip
-                    //     // ($application->st_date >= $existingStart && $application->st_date <= $existingEnd)
-                    // );
-                });
+               });
 
 
                 // $t_code = TripApplied::where('trip_id',$apply->)
@@ -342,6 +319,7 @@ class VacancyController_org extends Controller
                     'created_at' => $apply->created_at->format('d-m-Y'),
                     'driver_name' => $apply->driver->name ?? '-',
                     'driver_phone' => $apply->driver->phone ?? '-',
+                    'license_type' => $apply->driver->license->cov ?? '-', // <-- new column
                     'location' => $loc ?? '-',
                     'salary_per_day' => $apply->salary_perday ?? '-',
                     'wait_charge' => $apply->wait_charge ?? '-',
@@ -355,8 +333,6 @@ class VacancyController_org extends Controller
             });
 
         // dd($appliedListActing);
-
-
         return view('organization.vacancy.acting_list', compact('selectedJob', 'appliedListActing'));
     }
 
@@ -396,7 +372,7 @@ class VacancyController_org extends Controller
 
             $trip_det = Trip::find($trip_apply->trip_id);
 
-            $cor =  Corporate::find($trip_det->c_by);
+            $cor = Corporate::find($trip_det->c_by);
 
             $name = $cor->name ?? 'Unknown';
 
@@ -461,7 +437,7 @@ class VacancyController_org extends Controller
             ]);
 
             // Store in PermanentJobs table
-            $per_job =  PermanentJobs::create([
+            $per_job = PermanentJobs::create([
                 'job_type' => $request->job_type,
                 'veh_type' => $request->veh_type,
                 'veh_name' => $request->veh_name,
@@ -603,7 +579,7 @@ class VacancyController_org extends Controller
                         }
                     }
 
-                    $search_loc =  collect($nearbyLocations)->pluck('id')->toArray();
+                    $search_loc = collect($nearbyLocations)->pluck('id')->toArray();
 
                     $d_type = $trip->d_type; // could be 'male', 'female', or 'both'
 

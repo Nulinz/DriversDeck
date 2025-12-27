@@ -25,8 +25,8 @@
                                     <tr>
                                         <th>#</th>
                                         <th>Job Type</th>
-                                        <th>Vehcile Type</th>
-                                        <th>Vehcile Name</th>
+                                        <th>Vehicle Type</th>
+                                        <th>Vehicle Name</th>
                                         <th>Experience</th>
                                         <th>Location</th>
                                         <th>Salary</th>
