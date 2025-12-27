@@ -185,82 +185,76 @@
                                                                                 <td>{{ $candidate->loc }}</td>
                                                                                 <td>{{ ucfirst($candidate->type) }}</td>
                                                                                 <td>
-                                                                                    <a href="{{ route('admin.candidate.profile', ['id' => $candidate->id]) }}">
-                                                                                        <i class="fs-5 text-dark fa fa-external-link-alt"></i>
-                                                                                    </a>
+    <a href="{{ route('admin.candidate.profile', ['id' => $candidate->id]) }}">
+        <i class="fs-5 text-dark fa fa-external-link-alt"></i>
+    </a>
 
-                                                                                    <form action="{{ route('admin.handle.approval', [
-                                                'type' => $candidate->type,
-                                                'id' => $candidate->id,
-                                                'action' => 'approve'
-                                            ]) }}" method="POST" style="display:inline;">
-                                                                                        @csrf
-                                                                                        <button class="btn btn-success btn-sm p-1" title="Approve"
-                                                                                            onclick="return confirm('Approve this driver?')">
-                                                                                            <i class="fa fa-check fs-6"></i>
-                                                                                        </button>
-                                                                                    </form>
+    {{-- Approve --}}
+    <form action="{{ route('admin.handle.approval', [
+        'type' => $candidate->type,
+        'id' => $candidate->id,
+        'action' => 'approve'
+    ]) }}" method="POST" style="display:inline;">
+        @csrf
+        <button class="btn btn-success btn-sm p-1"
+                onclick="return confirm('Approve this driver?')">
+            <i class="fa fa-check fs-6"></i>
+        </button>
+    </form>
 
-                                                                                    <form action="{{ route('admin.handle.approval.reason', [
-                                                'type' => $candidate->type,
-                                                'id' => $candidate->id,
-                                                'action' => 'reject'
-                                            ]) }}" method="POST" style="display:inline;">
-                                                                                        @csrf
-        <button class="btn btn-success btn-sm p-1"                                                                                                                                                                     <button class="btn btn-danger btn-sm p-1"
-       
-        onclick="return confirm('Reject this driver?')"
-        title="Reject">
-    <i class="fa fa-times fs-6"></i>
-</button>
-
-                                                                                    </form>
-                                                                                </td>
+    {{-- Reject (ONLY modal trigger) --}}
+    <button type="button"
+            class="btn btn-danger btn-sm p-1"
+            data-bs-toggle="modal"
+            data-bs-target="#rejectModal{{ $candidate->id }}">
+        <i class="fa fa-times fs-6"></i>
+    </button>
+</td>
                                                                             </tr>
                                         @empty
-                                            <tr>
-                                                <td colspan="7" class="text-center text-muted">No pending drivers found</td>
-                                            </tr>
+                                           
                                         @endforelse
                                     </tbody>
                                 </table>
-
-
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-                                        <div class="modal fade" id="rejectModal{{ $candidate->id }}" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered">
-        <form method="POST" action="{{ route('admin.handle.approval.reason') }}">
-            @csrf
+<div class="modal fade" id="rejectModal{{ $candidate->id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('admin.handle.approval.reason') }}">
+                @csrf
 
-            <input type="hidden" name="type" value="{{ $candidate->type }}">
-            <input type="hidden" name="id" value="{{ $candidate->id }}">
-            <input type="hidden" name="action" value="reject">
+                <input type="hidden" name="type" value="{{ $candidate->type }}">
+                <input type="hidden" name="id" value="{{ $candidate->id }}">
+                <input type="hidden" name="action" value="reject">
 
-            <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Reject Driver</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
 
                 <div class="modal-body">
-                    <label>Reason <span class="text-danger">*</span></label>
-                    <textarea name="reason" class="form-control" rows="4"
-                              placeholder="Enter rejection reason..." required></textarea>
+                    <textarea name="reason"
+                              class="form-control"
+                              rows="4"
+                              required
+                              placeholder="Enter rejection reason (min 10 chars)"></textarea>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger">Reject</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger">
+                        Reject
+                    </button>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
+
     </main>
 
     <style>

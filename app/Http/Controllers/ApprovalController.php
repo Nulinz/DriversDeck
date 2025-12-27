@@ -126,7 +126,6 @@ class ApprovalController extends Controller
         } else {
             $model = \App\Models\Corporate::class;
         }
-
         $record = $model::findOrFail($request->id);
 
         // Update status
@@ -150,9 +149,7 @@ class ApprovalController extends Controller
         return redirect()
             ->route('admin.candidate.index')
             ->with('success', ucfirst($request->action) . ' successfully with reason');
-
     }
-
 
     public function handleSubscriptionApproval($type, $id, $action)
     {
