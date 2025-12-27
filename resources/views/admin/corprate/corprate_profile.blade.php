@@ -298,7 +298,7 @@
                         <div class="tab-pane fade" id="Hired" role="tabpanel">
                             {{-- Hired Details --}}
                             <div class="card mb-3">
-                                <h5 class="p-3 card-title mb-0 border-bottom">Hired List</h5>
+                                <h5 class="p-3 card-title mb-0 border-bottom"></h5>
                                 <div class="card-body p-0">
                                     <table class="table mb-0 table-hover">
                                         <thead>

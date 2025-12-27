@@ -103,11 +103,8 @@
                                 </div>
                                 <div class="acting-field mb-3 col-md-3" style="display:none;">
                                     <label class="form-label fw-bold">Alternate Number</label>
-                                    <input type="text" name="alternate_number" 
-                                        class="form-control form-control-lg border-2" 
-                                        placeholder=""
-                                        maxlength="10" 
-                                        minlength="10"
+                                    <input type="text" name="alternate_number" class="form-control form-control-lg border-2"
+                                        placeholder="" maxlength="10" minlength="10"
                                         oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                 </div>
 
@@ -150,11 +147,8 @@
 
                                 <div class="acting-field mb-3 col-md-3" style="display:none;">
                                     <label class="form-label fw-bold">Contact Number</label>
-                                    <input type="text" name="contact_number"
-                                        class="form-control form-control-lg border-2" 
-                                        placeholder=""
-                                        maxlength="10" 
-                                        minlength="10"
+                                    <input type="text" name="contact_number" class="form-control form-control-lg border-2"
+                                        placeholder="" maxlength="10" minlength="10"
                                         oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                 </div>
                                 <div class="acting-field mb-3 col-md-3" style="display:none;">
@@ -191,13 +185,13 @@
                                 <div class="full-time-field mb-3 col-md-3">
                                     <label class="d-block form-label fw-bold">Food</label>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input fs-3" type="radio" name="food"
-                                            id="food_yes" value="Yes">
+                                        <input class="form-check-input fs-3" type="radio" name="food" id="food_yes"
+                                            value="Yes">
                                         <label class="form-check-label fs-5" for="food_yes">Yes</label>
                                     </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input fs-3" type="radio" name="food"
-                                            id="food_no" value="No">
+                                        <input class="form-check-input fs-3" type="radio" name="food" id="food_no"
+                                            value="No">
                                         <label class="form-check-label fs-5" for="food_no">No</label>
                                     </div>
                                 </div>
@@ -210,8 +204,8 @@
                                         <label class="form-check-label fs-5" for="aggrement_yes">Yes</label>
                                     </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input fs-3" type="radio" name="aggrement"
-                                            id="aggrement_no" value="No">
+                                        <input class="form-check-input fs-3" type="radio" name="aggrement" id="aggrement_no"
+                                            value="No">
                                         <label class="form-check-label fs-5" for="aggrement_no">No</label>
                                     </div>
                                 </div>
@@ -219,7 +213,9 @@
                                 <!-- Description (full time only) -->
                                 <div class="full-time-field mb-3 col-md-12">
                                     <label class="form-label fw-bold">Description</label>
-                                    <textarea name="description" class="form-control form-control-lg border-2" placeholder=""></textarea>
+                                    <textarea name="description" class="form-control form-control-lg border-2"
+                                        placeholder="" onInput="this.value = this.value.replace(/[^a-zA-Z\s]/g, '');"
+                                        rows="5" cols="30"></textarea>
                                 </div>
 
                                 <!-- Map (acting only) -->
@@ -241,7 +237,8 @@
         </div>
     </main>
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    {{-- <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAqbFCGZVfe1hYOdsPZt838fx1pc_4tF3I&callback=initMap" async
+    {{--
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAqbFCGZVfe1hYOdsPZt838fx1pc_4tF3I&callback=initMap" async
         defer></script> --}}
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBefgPjpir1KgS5-9A9T3OxvycO8q1FQCA&libraries=places">
     </script>
@@ -250,7 +247,7 @@
     <script>
         const form = document.querySelector('#form_input');
 
-        form.addEventListener('keydown', function(event) {
+        form.addEventListener('keydown', function (event) {
             if (event.key === 'Enter') {
 
                 alert('Please use the submit button to save your changes.');
@@ -283,7 +280,7 @@
             directionsRenderer.setMap(map);
 
             // Map click to place marker manually
-            map.addListener("click", function(event) {
+            map.addListener("click", function (event) {
                 placeMarker(event.latLng, nextMarkerLabel);
                 geocodeLatLng(event.latLng, nextMarkerLabel);
                 nextMarkerLabel = nextMarkerLabel === "A" ? "B" : "A";
@@ -309,7 +306,7 @@
                 strictBounds: true
             });
 
-            fromAutocomplete.addListener('place_changed', function() {
+            fromAutocomplete.addListener('place_changed', function () {
                 const place = fromAutocomplete.getPlace();
                 if (!place.geometry) return;
 
@@ -355,7 +352,7 @@
                 strictBounds: true
             });
 
-            toAutocomplete.addListener('place_changed', function() {
+            toAutocomplete.addListener('place_changed', function () {
                 const place = toAutocomplete.getPlace();
                 if (!place.geometry) return;
 
@@ -421,7 +418,7 @@
             }
 
             // On drag end, update address & coordinates + redraw route
-            markers[index].addListener("dragend", function() {
+            markers[index].addListener("dragend", function () {
                 const newPos = markers[index].getPosition();
                 geocodeLatLng(newPos, label);
                 const newCoords = newPos.lat() + ',' + newPos.lng();
@@ -458,7 +455,7 @@
         function geocodeLatLng(latlng, label) {
             geocoder.geocode({
                 location: latlng
-            }, function(results, status) {
+            }, function (results, status) {
                 if (status === "OK" && results[0]) {
                     const address = results[0].formatted_address;
 
@@ -512,7 +509,7 @@
                 travelMode: google.maps.TravelMode.DRIVING
             };
 
-            directionsService.route(request, function(result, status) {
+            directionsService.route(request, function (result, status) {
                 if (status === "OK") {
                     directionsRenderer.setDirections(result);
                 } else {
@@ -522,10 +519,10 @@
         }
 
         // Show/hide map section based on job type
-        $(document).ready(function() {
+        $(document).ready(function () {
             let mapInitialized = false;
 
-            $('#jobTypeSelect').change(function() {
+            $('#jobTypeSelect').change(function () {
                 const selectedJobType = $(this).val();
 
                 if (selectedJobType === 'Acting') {

@@ -25,31 +25,31 @@ class Api_owner extends Controller
     public function owner_register(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'     => 'required|string',
+            'name' => 'required|string',
             'location' => 'required|string',
             'district' => 'required|string',
-            'gender'   => 'required|string',
+            'gender' => 'required|string',
             // 'ref_code' => 'nullable|string',
-            'ad_1'     => 'required|string',
-            'ad_2'     => 'nullable|string',
-            'city'     => 'required|string',
-            'state'    => 'required|string',
-            'pin'      => 'required|digits:6',
-            'contact'  => 'required|digits:10|unique:corporate,contact',
+            'ad_1' => 'required|string',
+            'ad_2' => 'nullable|string',
+            'city' => 'required|string',
+            'state' => 'required|string',
+            'pin' => 'required|digits:6',
+            'contact' => 'required|digits:10|unique:corporate,contact',
         ], [
-            'name.required'     => 'Full name is required.',
+            'name.required' => 'Full name is required.',
             'location.required' => 'Location is required.',
             'district.required' => 'District is required.',
-            'gender.required'   => 'Gender is required.',
-            'gender.in'         => 'Gender must be male, female, or other.',
-            'ad_1.required'     => 'Address Line 1 is required.',
-            'city.required'     => 'City is required.',
-            'state.required'    => 'State is required.',
-            'pin.required'      => 'Pincode is required.',
-            'pin.digits'        => 'Pincode must be 6 digits.',
-            'contact.required'  => 'Mobile number is required.',
-            'contact.digits'    => 'Mobile number must be 10 digits.',
-            'contact.unique'    => 'This contact number is already registered.',
+            'gender.required' => 'Gender is required.',
+            'gender.in' => 'Gender must be male, female, or other.',
+            'ad_1.required' => 'Address Line 1 is required.',
+            'city.required' => 'City is required.',
+            'state.required' => 'State is required.',
+            'pin.required' => 'Pincode is required.',
+            'pin.digits' => 'Pincode must be 6 digits.',
+            'contact.required' => 'Mobile number is required.',
+            'contact.digits' => 'Mobile number must be 10 digits.',
+            'contact.unique' => 'This contact number is already registered.',
         ]);
 
         if ($validator->fails()) {
@@ -68,23 +68,23 @@ class Api_owner extends Controller
 
         // Insert the new user and get the ID first
         $data = [
-            'name'         => $request->name,
-            'location'     => $request->location,
-            'district'     => $request->district,
-            'gender'       => $request->gender,
-            'ref_code'     => $ref_code,
-            'ad_1'         => $request->ad_1,
-            'ad_2'         => $request->ad_2,
-            'city'         => $request->city,
-            'state'        => $request->state,
-            'pin'          => $request->pin,
-            'contact'      => $phone,
-            'type'         => 'owner',
+            'name' => $request->name,
+            'location' => $request->location,
+            'district' => $request->district,
+            'gender' => $request->gender,
+            'ref_code' => $ref_code,
+            'ad_1' => $request->ad_1,
+            'ad_2' => $request->ad_2,
+            'city' => $request->city,
+            'state' => $request->state,
+            'pin' => $request->pin,
+            'contact' => $phone,
+            'type' => 'owner',
             'subscription' => 'no',
-            'otp'          => $otp,
-            'c_by'         => auth('sanctum')->user(),
-            'created_at'   => now(),
-            'updated_at'   => now(),
+            'otp' => $otp,
+            'c_by' => auth('sanctum')->user(),
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
 
         // Insert the new user
@@ -148,10 +148,10 @@ class Api_owner extends Controller
         $smsResponse = file_get_contents($url);
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Owner registered successfully. OTP sent to your mobile.',
-            'data'    => $data,
-            'token'   => $token,
+            'data' => $data,
+            'token' => $token,
         ], 200);
     }
 
@@ -165,8 +165,8 @@ class Api_owner extends Controller
 
         if ($request->type === 'acting') {
             $plans = [
-                ['plan' => 3,  'amount' => '400'],
-                ['plan' => 6,  'amount' => '700'],
+                ['plan' => 3, 'amount' => '400'],
+                ['plan' => 6, 'amount' => '700'],
                 // ['plan' => 12,  'amount' => '1200'],
                 ['plan' => 12, 'amount' => '1200'],
             ];
@@ -182,10 +182,10 @@ class Api_owner extends Controller
         }
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Subscription plan info',
-            'data'    => [
-                'type'  => $request->type,
+            'data' => [
+                'type' => $request->type,
                 'plans' => $plans
             ]
         ], 200);
@@ -200,17 +200,17 @@ class Api_owner extends Controller
 
 
         $request->validate([
-            'id'     => 'required|integer',
-            'type'   => 'required|string|in:acting,permanent,owner,corporate',
+            'id' => 'required|integer',
+            'type' => 'required|string|in:acting,permanent,owner,corporate',
             'token' => 'required|string',
-            'otp_sts'     => 'required|string',
+            'otp_sts' => 'required|string',
 
         ], [
-            'id.required'   => 'user is required.',
-            'id.integer'    => 'User ID must be a number.',
-            'type.required'   => 'Type is required.',
-            'token.required'   => 'Token is required.',
-            'otp_sts.required'   => 'OTP status is required.',
+            'id.required' => 'user is required.',
+            'id.integer' => 'User ID must be a number.',
+            'type.required' => 'Type is required.',
+            'token.required' => 'Token is required.',
+            'otp_sts.required' => 'OTP status is required.',
         ]);
 
         if ($request->type === 'owner' || $request->type === 'corporate') {
@@ -255,7 +255,7 @@ class Api_owner extends Controller
 
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Device token updated successfully',
 
         ], 200);
@@ -266,140 +266,140 @@ class Api_owner extends Controller
 
 
 
-public function add_subscription(Request $request)
-{
-    $request->merge([
-        'plan' => (string) $request->plan
-    ]);
-    
-    $request->validate([
-        'f_id'     => 'required|integer',
-        'type' => 'required|in:owner,corporate,acting,permanent',
-        'plan'     => 'required|in:3,6,9,12',
-        't_id'     => 'required|string',
-        'amount'   => 'required|string',
-        'payment_screenshot' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120', 
-    ], [
-        'f_id.required'   => 'Foreign ID (f_id) is required.',
-        'f_id.integer'    => 'Foreign ID must be a number.',
-        'type.required'   => 'Type is required.',
-        'type.in'         => 'Type must be one of owner, corporate, acting, or permanent.',
-        'plan.required'   => 'Plan is required.',
-        'plan.in'         => 'Plan must be one of: 3, 6, 9, or 12 months.',
-        't_id.string'     => 'Transaction ID must be a string.',
-        'amount.string'   => 'Amount must be a string.',
-    ]);
+    public function add_subscription(Request $request)
+    {
+        $request->merge([
+            'plan' => (string) $request->plan
+        ]);
 
-    $planMonths = (int) $request->plan;
-    // $expDate = now()->addMonths($planMonths)->format('Y-m-d');
+        $request->validate([
+            'f_id' => 'required|integer',
+            'type' => 'required|in:owner,corporate,acting,permanent',
+            'plan' => 'required|in:3,6,9,12',
+            't_id' => 'required|string',
+            'amount' => 'required|string',
+            'payment_screenshot' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+        ], [
+            'f_id.required' => 'Foreign ID (f_id) is required.',
+            'f_id.integer' => 'Foreign ID must be a number.',
+            'type.required' => 'Type is required.',
+            'type.in' => 'Type must be one of owner, corporate, acting, or permanent.',
+            'plan.required' => 'Plan is required.',
+            'plan.in' => 'Plan must be one of: 3, 6, 9, or 12 months.',
+            't_id.string' => 'Transaction ID must be a string.',
+            'amount.string' => 'Amount must be a string.',
+        ]);
 
-    // Handle file upload
-    $screenshotPath = null;
-    if ($request->hasFile('payment_screenshot')) {
-        $file = $request->file('payment_screenshot');
-        $filename = 'payment_' . $request->f_id . '_' . time() . '.' . $file->getClientOriginalExtension();
-        
-        // Move directly to public/payment_screenshots
-        $file->move(public_path('payment_screenshots'), $filename);
-        
-        // Save path
-        $screenshotPath = 'payment_screenshots/' . $filename;
-    }
+        $planMonths = (int) $request->plan;
+        // $expDate = now()->addMonths($planMonths)->format('Y-m-d');
 
-    $subscription = Subscription::create([
-        'f_id'     => $request->f_id,
-        'type'     => $request->type,
-        'plan'     => (string) $planMonths,
-        't_id'     => $request->t_id,
-        'amount'   => $request->amount,
-        'paid_sts' => 'success',
-        'status'   => 'active',
-        'payment_screenshot' => $screenshotPath,
-        'c_by'     => auth('sanctum')->user()->id ?? 1,
-    ]);
+        // Handle file upload
+        $screenshotPath = null;
+        if ($request->hasFile('payment_screenshot')) {
+            $file = $request->file('payment_screenshot');
+            $filename = 'payment_' . $request->f_id . '_' . time() . '.' . $file->getClientOriginalExtension();
 
-    // Update corporate table for 'owner' and 'corporate' types
-    if ($request->type === 'owner' || $request->type === 'corporate') {
-        $corporateExists = DB::table('corporate')
-            ->where('id', $request->f_id)
-            ->exists();
+            // Move directly to public/payment_screenshots
+            $file->move(public_path('payment_screenshots'), $filename);
 
-        if ($corporateExists) {
-            DB::table('corporate')
-                ->where('id', $request->f_id)
-                ->update([
-                    'subscription' => 'yes',
-                ]);
-        } else {
-            Log::warning("Corporate ID {$request->f_id} not found in corporate table.");
+            // Save path
+            $screenshotPath = 'payment_screenshots/' . $filename;
         }
-    }
 
-    // Update driver table for 'acting' and 'permanent' types
-    if ($request->type === 'acting' || $request->type === 'permanent') {
-        $driverExists = DB::table('driver')
-            ->where('id', $request->f_id)
-            ->exists();
+        $subscription = Subscription::create([
+            'f_id' => $request->f_id,
+            'type' => $request->type,
+            'plan' => (string) $planMonths,
+            't_id' => $request->t_id,
+            'amount' => $request->amount,
+            'paid_sts' => 'success',
+            'status' => 'active',
+            'payment_screenshot' => $screenshotPath,
+            'c_by' => auth('sanctum')->user()->id ?? 1,
+        ]);
 
-        if ($driverExists) {
-            DB::table('driver')
+        // Update corporate table for 'owner' and 'corporate' types
+        if ($request->type === 'owner' || $request->type === 'corporate') {
+            $corporateExists = DB::table('corporate')
                 ->where('id', $request->f_id)
-                ->update(['subscription' => 'progress']);
-        } else {
-            Log::warning("Driver ID {$request->f_id} not found in driver table.");
+                ->exists();
+
+            if ($corporateExists) {
+                DB::table('corporate')
+                    ->where('id', $request->f_id)
+                    ->update([
+                        'subscription' => 'yes',
+                    ]);
+            } else {
+                Log::warning("Corporate ID {$request->f_id} not found in corporate table.");
+            }
         }
-    }
 
-    // Fetch the actual subscription status from the corresponding table
-    $subscriptionStatus = null;
+        // Update driver table for 'acting' and 'permanent' types
+        if ($request->type === 'acting' || $request->type === 'permanent') {
+            $driverExists = DB::table('driver')
+                ->where('id', $request->f_id)
+                ->exists();
 
-    if ($request->type === 'owner' || $request->type === 'corporate') {
-        $subscriptionStatus = DB::table('corporate')
-            ->where('id', $request->f_id)
-            ->value('subscription');
-    } elseif ($request->type === 'acting' || $request->type === 'permanent') {
-        $subscriptionStatus = DB::table('driver')
-            ->where('id', $request->f_id)
-            ->value('subscription');
-    }
+            if ($driverExists) {
+                DB::table('driver')
+                    ->where('id', $request->f_id)
+                    ->update(['subscription' => 'progress']);
+            } else {
+                Log::warning("Driver ID {$request->f_id} not found in driver table.");
+            }
+        }
 
-    return response()->json([
-        'status'  => true,
-        'message' => 'Subscription added successfully',
-        'data'    => [
-            'f_id'     => (string) $subscription->f_id,
-            'type'     => $subscription->type,
-            'plan'     => (string) $subscription->plan,
-            't_id'     => $subscription->t_id,
-            'amount'   => $subscription->amount,
-            'paid_sts' => $subscription->paid_sts,
-            'status'   => $subscriptionStatus ?? 'N/A',
-            'exp_date' => $subscription->exp_date,
-            'payment_screenshot' => $subscription->payment_screenshot,
-            'number' => '123456789',
-        ]
-    ], 200);
-}
+        // Fetch the actual subscription status from the corresponding table
+        $subscriptionStatus = null;
 
-    public function checkTransactionId(Request $request)
-{
-    $request->validate([
-        't_id' => 'required|string',
-    ]);
-    $existingTransaction = Subscription::where('t_id', $request->t_id)->first();
+        if ($request->type === 'owner' || $request->type === 'corporate') {
+            $subscriptionStatus = DB::table('corporate')
+                ->where('id', $request->f_id)
+                ->value('subscription');
+        } elseif ($request->type === 'acting' || $request->type === 'permanent') {
+            $subscriptionStatus = DB::table('driver')
+                ->where('id', $request->f_id)
+                ->value('subscription');
+        }
 
-    if ($existingTransaction) {
         return response()->json([
-            'status'  => true,
-            'message' => 'This transaction ID has already been used.',
+            'status' => true,
+            'message' => 'Subscription added successfully',
+            'data' => [
+                'f_id' => (string) $subscription->f_id,
+                'type' => $subscription->type,
+                'plan' => (string) $subscription->plan,
+                't_id' => $subscription->t_id,
+                'amount' => $subscription->amount,
+                'paid_sts' => $subscription->paid_sts,
+                'status' => $subscriptionStatus ?? 'N/A',
+                'exp_date' => $subscription->exp_date,
+                'payment_screenshot' => $subscription->payment_screenshot,
+                'number' => '123456789',
+            ]
         ], 200);
     }
 
-    return response()->json([
-        'status'  => true,
-        'message' => 'Transaction ID is available.',
-    ], 200);
-}
+    public function checkTransactionId(Request $request)
+    {
+        $request->validate([
+            't_id' => 'required|string',
+        ]);
+        $existingTransaction = Subscription::where('t_id', $request->t_id)->first();
+
+        if ($existingTransaction) {
+            return response()->json([
+                'status' => true,
+                'message' => 'This transaction ID has already been used.',
+            ], 200);
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Transaction ID is available.',
+        ], 200);
+    }
 
     public function owner_login(Request $request)
     {
@@ -407,8 +407,8 @@ public function add_subscription(Request $request)
             'phone' => 'required|numeric|digits:10',
         ], [
             'phone.required' => 'Phone number is required.',
-            'phone.numeric'  => 'Phone number must be numeric.',
-            'phone.digits'   => 'Phone number must be 10 digits.',
+            'phone.numeric' => 'Phone number must be numeric.',
+            'phone.digits' => 'Phone number must be 10 digits.',
         ]);
 
         if ($validator->fails()) {
@@ -464,10 +464,10 @@ public function add_subscription(Request $request)
             'status' => true,
             'message' => 'OTP sent successfully',
             'data' => [
-                'user_id'          => $corporate->id,
+                'user_id' => $corporate->id,
                 'subscription_sts' => $corporate->subscription,
-                'exp_date'         => $expDate,
-                'otp'              => $otp, // remove in prod for security
+                'exp_date' => $expDate,
+                'otp' => $otp, // remove in prod for security
             ]
         ], 200);
     }
@@ -479,8 +479,8 @@ public function add_subscription(Request $request)
             'phone' => 'required|numeric|digits:10',
         ], [
             'phone.required' => 'Phone number is required.',
-            'phone.numeric'  => 'Phone number must be numeric.',
-            'phone.digits'   => 'Phone number must be 10 digits.',
+            'phone.numeric' => 'Phone number must be numeric.',
+            'phone.digits' => 'Phone number must be 10 digits.',
         ]);
 
         if ($validator->fails()) {
@@ -537,8 +537,8 @@ public function add_subscription(Request $request)
             'status' => true,
             'message' => 'OTP resent successfully',
             'data' => [
-                'user_id'          => $corporate->id,
-                'otp'              => $otp, //  remove in production
+                'user_id' => $corporate->id,
+                'otp' => $otp, //  remove in production
             ]
         ], 200);
     }
@@ -549,44 +549,44 @@ public function add_subscription(Request $request)
     public function trip_create(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'from_address'      => 'required|string',
-            'to_address'        => 'required|string',
-            'start_city'       => 'required|string',
-            'end_city'         => 'required|string',
-            'start_lat'         => 'required|numeric',
-            'start_lng'         => 'required|numeric',
-            'end_lat'           => 'required|numeric',
-            'end_lng'           => 'required|numeric',
-            'veh_type'          => 'required|string',
-            'veh_name'         => 'nullable|string',
-            'veh_number'       => 'required|string|max:20',
-            'contact_number'    => 'required|digits:10',
-            'alternate_number'  => 'nullable|digits:10',
-            'start_date'        => 'required|date',
-            'end_date'          => 'required|date',
-            'start_time'        => 'required',
-            'no_of_days'        => 'required|integer',
-            'd_type'          => 'required|string',
+            'from_address' => 'required|string',
+            'to_address' => 'required|string',
+            'start_city' => 'required|string',
+            'end_city' => 'required|string',
+            'start_lat' => 'required|numeric',
+            'start_lng' => 'required|numeric',
+            'end_lat' => 'required|numeric',
+            'end_lng' => 'required|numeric',
+            'veh_type' => 'required|string',
+            'veh_name' => 'nullable|string',
+            'veh_number' => 'required|string|max:20',
+            'contact_number' => 'required|digits:10',
+            'alternate_number' => 'nullable|digits:10',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date',
+            'start_time' => 'required',
+            'no_of_days' => 'required|integer',
+            'd_type' => 'required|string',
 
         ], [
-            'from_address.required'     => 'From address is required.',
-            'to_address.required'       => 'To address is required.',
-            'start_city.required'       => 'Start city is required.',
-            'end_city.required'         => 'End city is required.',
-            'start_lat.required'        => 'Start latitude is required.',
-            'start_lng.required'        => 'Start longitude is required.',
-            'end_lat.required'          => 'End latitude is required.',
-            'end_lng.required'          => 'End longitude is required.',
-            'veh_type.required'         => 'Vehicle type is required.',
-            'veh_name.required'         => 'Vehicle name is required.',
-            'veh_number.required'         => 'Vehicle number is required.',
-            'contact_number.required'   => 'Contact number is required.',
-            'contact_number.digits'     => 'Contact number must be 10 digits.',
-            'start_date.required'       => 'Start date is required.',
-            'end_date.required'         => 'End date is required.',
-            'start_time.required'       => 'Start time is required.',
-            'no_of_days.required'       => 'Number of days is required.',
-            'd_type.required'          => 'Driver type is required.',
+            'from_address.required' => 'From address is required.',
+            'to_address.required' => 'To address is required.',
+            'start_city.required' => 'Start city is required.',
+            'end_city.required' => 'End city is required.',
+            'start_lat.required' => 'Start latitude is required.',
+            'start_lng.required' => 'Start longitude is required.',
+            'end_lat.required' => 'End latitude is required.',
+            'end_lng.required' => 'End longitude is required.',
+            'veh_type.required' => 'Vehicle type is required.',
+            'veh_name.required' => 'Vehicle name is required.',
+            'veh_number.required' => 'Vehicle number is required.',
+            'contact_number.required' => 'Contact number is required.',
+            'contact_number.digits' => 'Contact number must be 10 digits.',
+            'start_date.required' => 'Start date is required.',
+            'end_date.required' => 'End date is required.',
+            'start_time.required' => 'Start time is required.',
+            'no_of_days.required' => 'Number of days is required.',
+            'd_type.required' => 'Driver type is required.',
         ]);
 
         if ($validator->fails()) {
@@ -594,32 +594,32 @@ public function add_subscription(Request $request)
         }
 
         $data = [
-            'st_loc'       => $request->from_address,
-            'st_dest'      => $request->to_address,
-            'st_city'     => $request->start_city,
-            'end_city'     => $request->end_city,
-            'st_cord'      => $request->start_lat,
-            'start_lat'    => $request->start_lat,
-            'start_lng'    => $request->start_lng,
-            'end_cord'     => $request->start_lng,
-            'dest_cord'    => $request->end_lat . ',' . $request->end_lng,
-            'title'        => 'Acting Driver Job',
-            'con_number'   => $request->contact_number,
+            'st_loc' => $request->from_address,
+            'st_dest' => $request->to_address,
+            'st_city' => $request->start_city,
+            'end_city' => $request->end_city,
+            'st_cord' => $request->start_lat,
+            'start_lat' => $request->start_lat,
+            'start_lng' => $request->start_lng,
+            'end_cord' => $request->start_lng,
+            'dest_cord' => $request->end_lat . ',' . $request->end_lng,
+            'title' => 'Acting Driver Job',
+            'con_number' => $request->contact_number,
             'alter_number' => $request->alternate_number,
             // 'st_date'      => Carbon::createFromFormat('d-m-Y', $request->start_date)->format('Y-m-d'),
             // 'end_date'     => Carbon::createFromFormat('d-m-Y', $request->end_date)->format('Y-m-d'),
 
-            'st_date'  => Carbon::parse($request->start_date)->format('Y-m-d'),
+            'st_date' => Carbon::parse($request->start_date)->format('Y-m-d'),
             'end_date' => Carbon::parse($request->end_date)->format('Y-m-d'),
 
-            'st_time'      => $request->start_time,
-            'no_days'      => $request->no_of_days,
-            'veh_type'     => $request->veh_type,
-            'veh_name'     => $request->veh_name,
-            'veh_number'   => $request->veh_number,
-            'd_type'       => $request->d_type,
-            'status'       => 'pending',
-            'c_by'         => auth('sanctum')->user()->id ?? 1,
+            'st_time' => $request->start_time,
+            'no_days' => $request->no_of_days,
+            'veh_type' => $request->veh_type,
+            'veh_name' => $request->veh_name,
+            'veh_number' => $request->veh_number,
+            'd_type' => $request->d_type,
+            'status' => 'pending',
+            'c_by' => auth('sanctum')->user()->id ?? 1,
         ];
 
         // Log::info($request->all());
@@ -663,7 +663,7 @@ public function add_subscription(Request $request)
 
             // Log::info('Nearby Locations:', ['locations' => $nearbyLocations]);
 
-            $search_loc =  collect($nearbyLocations)->pluck('id')->toArray();
+            $search_loc = collect($nearbyLocations)->pluck('id')->toArray();
 
             $d_type = $trip->d_type; // could be 'male', 'female', or 'both'
 
@@ -697,7 +697,13 @@ public function add_subscription(Request $request)
 
     public function calculateDistance($lat1, $lon1, $lat2, $lon2)
     {
-        $earthRadius = 6371;
+        // Cast all inputs to float
+        $lat1 = (float) $lat1;
+        $lon1 = (float) $lon1;
+        $lat2 = (float) $lat2;
+        $lon2 = (float) $lon2;
+
+        $earthRadius = 6371; // Earth radius in kilometers
 
         $dLat = deg2rad($lat2 - $lat1);
         $dLon = deg2rad($lon2 - $lon1);
@@ -708,15 +714,8 @@ public function add_subscription(Request $request)
 
         $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
 
-        return $earthRadius * $c;
+        return $earthRadius * $c; // distance in km
     }
-
-
-
-
-
-
-
 
     // public function owner_trip_list(Request $request)
     // {
@@ -792,82 +791,82 @@ public function add_subscription(Request $request)
     //     ]);
     // }
 
-public function owner_trip_list(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'owner_id' => 'required|integer|exists:corporate,id',
-    ]);
+    public function owner_trip_list(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'owner_id' => 'required|integer|exists:corporate,id',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 200);
-    }
-
-    // Explicitly exclude 'Cancel' status trips
-    $trips = Trip::where('c_by', $request->owner_id)
-        ->whereIn('status', ['pending', 'Hired', 'Cancel Requested', 'Start'])
-        ->where('status', '!=', 'Cancel') // Extra safety to exclude Cancel status
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-    $currentTrips   = [];
-    $upcomingTrips  = [];
-    $plannedTrips   = [];
-
-    foreach ($trips as $trip) {
-        // Additional check to ensure we never process Cancel status trips
-        if ($trip->status === 'Cancel') {
-            continue;
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 200);
         }
 
-        $applied = TripApplied::where('trip_id', $trip->id)
-            ->whereIn('status', ['Hired', 'Start', 'Cancel Requested']) // stricter for proper matches
-            ->orderBy('id', 'desc')
-            ->first();
+        // Explicitly exclude 'Cancel' status trips
+        $trips = Trip::where('c_by', $request->owner_id)
+            ->whereIn('status', ['pending', 'Hired', 'Cancel Requested', 'Start'])
+            ->where('status', '!=', 'Cancel') // Extra safety to exclude Cancel status
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-        $driver = $applied && $applied->d_id
-            ? Driver::find($applied->d_id)
-            : null;
+        $currentTrips = [];
+        $upcomingTrips = [];
+        $plannedTrips = [];
 
-        $tripData = [
-            'id'          => $trip->id,
-            'driver_id'   => $driver ? $driver->id : 'N/A',
-            'driver_name' => $driver ? $driver->name : 'N/A',
-            'title'       => $trip->title ?? 'N/A',
-            'st_loc'      => $trip->st_city ?? 'N/A',
-            'st_dest'     => $trip->end_city ?? 'N/A',
-            'st_date'     => $trip->st_date ? Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
-            'end_date'    => $trip->end_date ? Carbon::parse($trip->end_date)->format('d/m/Y') : 'N/A',
-            'st_time'     => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
-            'status'      => $trip->status ?? 'N/A',
-            'created_at'  => $trip->created_at ? Carbon::parse($trip->created_at)->format('Y-m-d H:i:s') : 'N/A',
-        ];
+        foreach ($trips as $trip) {
+            // Additional check to ensure we never process Cancel status trips
+            if ($trip->status === 'Cancel') {
+                continue;
+            }
 
-        switch ($trip->status) {
-            case 'Start':
-                $currentTrips[] = $tripData;
-                break;
-            case 'Hired':
-            case 'Cancel Requested':
-                $upcomingTrips[] = $tripData;
-                break;
-            case 'pending':
-                $plannedTrips[] = $tripData;
-                break;
-            // Note: 'Cancel' case is intentionally omitted and filtered out above
+            $applied = TripApplied::where('trip_id', $trip->id)
+                ->whereIn('status', ['Hired', 'Start', 'Cancel Requested']) // stricter for proper matches
+                ->orderBy('id', 'desc')
+                ->first();
+
+            $driver = $applied && $applied->d_id
+                ? Driver::find($applied->d_id)
+                : null;
+
+            $tripData = [
+                'id' => $trip->id,
+                'driver_id' => $driver ? $driver->id : 'N/A',
+                'driver_name' => $driver ? $driver->name : 'N/A',
+                'title' => $trip->title ?? 'N/A',
+                'st_loc' => $trip->st_city ?? 'N/A',
+                'st_dest' => $trip->end_city ?? 'N/A',
+                'st_date' => $trip->st_date ? Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
+                'end_date' => $trip->end_date ? Carbon::parse($trip->end_date)->format('d/m/Y') : 'N/A',
+                'st_time' => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
+                'status' => $trip->status ?? 'N/A',
+                'created_at' => $trip->created_at ? Carbon::parse($trip->created_at)->format('Y-m-d H:i:s') : 'N/A',
+            ];
+
+            switch ($trip->status) {
+                case 'Start':
+                    $currentTrips[] = $tripData;
+                    break;
+                case 'Hired':
+                case 'Cancel Requested':
+                    $upcomingTrips[] = $tripData;
+                    break;
+                case 'pending':
+                    $plannedTrips[] = $tripData;
+                    break;
+                // Note: 'Cancel' case is intentionally omitted and filtered out above
+            }
         }
-    }
 
-    return response()->json([
-        'status'         => true,
-        'message'        => 'Trip list retrieved successfully.',
-        'notification'   => 0,
-        'current_trip'   => $currentTrips,
-        'upcoming_trip'  => $upcomingTrips,
-        'planned_trip'   => $plannedTrips,
-        'owner_status'   => auth('sanctum')->user()->status,
-        'number'         => '123456789'
-    ]);
-}
+        return response()->json([
+            'status' => true,
+            'message' => 'Trip list retrieved successfully.',
+            'notification' => 0,
+            'current_trip' => $currentTrips,
+            'upcoming_trip' => $upcomingTrips,
+            'planned_trip' => $plannedTrips,
+            'owner_status' => auth('sanctum')->user()->status,
+            'number' => '123456789'
+        ]);
+    }
 
 
 
@@ -882,9 +881,9 @@ public function owner_trip_list(Request $request)
         // Only owners can access this
         if ($user->type !== 'owner') {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'Only owners can access this trip detail.',
-                'data'    => []
+                'data' => []
             ], 403);
         }
 
@@ -896,9 +895,9 @@ public function owner_trip_list(Request $request)
 
         if (!$trip) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'No current trip found for owner.',
-                'data'    => []
+                'data' => []
             ], 200);
         }
 
@@ -910,9 +909,9 @@ public function owner_trip_list(Request $request)
 
         if (!$tripApplied) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'No driver found for this trip.',
-                'data'    => []
+                'data' => []
             ], 200);
         }
 
@@ -926,19 +925,19 @@ public function owner_trip_list(Request $request)
         $report = !empty($tripApplied->remarks) || !empty($tripApplied->reason);
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Owner trip details fetched successfully.',
-            'data'    => [
-                'driver_id'    => $tripApplied->d_id,
-                'trip_id'     => $trip->id,
-                'start_loc'   => $trip->st_cord . ', ' . $trip->end_cord,
-                'end_loc'     => $trip->dest_cord ?? 'N/A',
-                'crnt_loc'    => $tripApplied->crnt_loc ?? 'N/A',
+            'data' => [
+                'driver_id' => $tripApplied->d_id,
+                'trip_id' => $trip->id,
+                'start_loc' => $trip->st_cord . ', ' . $trip->end_cord,
+                'end_loc' => $trip->dest_cord ?? 'N/A',
+                'crnt_loc' => $tripApplied->crnt_loc ?? 'N/A',
                 'last_updated' => $tripApplied->updated_at ? Carbon::parse($tripApplied->updated_at)->format('Y-m-d H:i:s') : 'N/A',
                 'driver_name' => $driver->name ?? 'N/A',
-                'contact'     => $driver->phone ?? 'N/A',
-                'driver_img'  => $driver->img ? asset($driver->img) : 'N/A',
-                'report'       => $report
+                'contact' => $driver->phone ?? 'N/A',
+                'driver_img' => $driver->img ? asset($driver->img) : 'N/A',
+                'report' => $report
             ]
         ], 200);
     }
@@ -949,7 +948,7 @@ public function owner_trip_list(Request $request)
     {
         $request->validate([
             'trip_id' => 'required|integer|exists:trip_applied,trip_id',
-            'image'   => 'required|image'
+            'image' => 'required|image'
         ]);
 
         $image = $request->file('image');
@@ -966,12 +965,12 @@ public function owner_trip_list(Request $request)
         DB::table('trip')
             ->where('id', $request->trip_id)
             ->update([
-                'trip_img'   => 'trip_img/' . $filename,
+                'trip_img' => 'trip_img/' . $filename,
                 'updated_at' => now(),
             ]);
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Trip image uploaded successfully.',
             'img_url' => asset('trip_img/' . $filename)
         ]);
@@ -988,15 +987,15 @@ public function owner_trip_list(Request $request)
             'trip_id' => 'required|integer|exists:trip,id',
         ], [
             'trip_id.required' => 'Trip ID is required.',
-            'trip_id.integer'  => 'Trip ID must be a number.',
-            'trip_id.exists'   => 'Trip not found.',
+            'trip_id.integer' => 'Trip ID must be a number.',
+            'trip_id.exists' => 'Trip not found.',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 200);
         }
 
-        $city1 =  Trip::where('id', $request->trip_id)->select('st_city', 'end_city')->first();
+        $city1 = Trip::where('id', $request->trip_id)->select('st_city', 'end_city')->first();
 
         $applications = TripApplied::with(['driver.details', 'trip'])
             ->where('trip_id', $request->trip_id)
@@ -1006,7 +1005,8 @@ public function owner_trip_list(Request $request)
 
                 $city = $application->trip;
 
-                if (!$driver) return null;
+                if (!$driver)
+                    return null;
 
                 // Step 1: Get existing trips for driver with 'hire' or 'start' status
                 $existingTrips = TripApplied::with(['trip'])->where('d_id', $driver->id)
@@ -1017,7 +1017,7 @@ public function owner_trip_list(Request $request)
                 $hasConflict = $existingTrips->contains(function ($trips) use ($city) {
 
                     // log::info($trips);
-
+    
                     $existingStart = Carbon::parse($trips->trip->st_date);
                     $existingEnd = Carbon::parse($trips->trip->end_date);
 
@@ -1026,7 +1026,7 @@ public function owner_trip_list(Request $request)
 
                     // log::info($existingStart . ' - ' . $existingEnd);
                     // log::info($newStart . ' - ' . $newEnd);
-
+    
                     return $existingStart <= $newEnd && $existingEnd >= $newStart;
 
                     // return (
@@ -1034,7 +1034,7 @@ public function owner_trip_list(Request $request)
                     //     ($newEnd >= $existingStart && $newEnd <= $existingEnd)
                     //     // // New start date is within existing trip
                     //     // ($application->st_date >= $existingStart && $application->st_date <= $existingEnd) ||
-
+    
                     //     // // New end date is within existing trip
                     //     // ($application->st_date >= $existingStart && $application->st_date <= $existingEnd)
                     // );
@@ -1055,18 +1055,18 @@ public function owner_trip_list(Request $request)
                 }
 
                 return [
-                    'd_id'       => $driver->id,
-                    'name'       => $driver->name,
-                    'img'        => $driver->img ? asset($driver->img) : 'N/A',
-                    'st_loc'     => $city->st_city,
-                    'end_loc'    => $city->end_city,
+                    'd_id' => $driver->id,
+                    'name' => $driver->name,
+                    'img' => $driver->img ? asset($driver->img) : 'N/A',
+                    'st_loc' => $city->st_city,
+                    'end_loc' => $city->end_city,
                     'experience' => $details->exp_year ?? 0,
-                    'rating'     => $avgRating ? round($avgRating, 1) : 0,
-                    'location'   => $locationName,
-                    'salary'     => $application->salary_perday ?? 0,
-                    'about'      => $details->about ?? 0,
-                    'c_on'       => $application->created_at ? Carbon::parse($application->created_at)->format('Y-m-d H:i:s') : 'N/A',
-                    'status'     => $application->status ?? 'N/A',
+                    'rating' => $avgRating ? round($avgRating, 1) : 0,
+                    'location' => $locationName,
+                    'salary' => $application->salary_perday ?? 0,
+                    'about' => $details->about ?? 0,
+                    'c_on' => $application->created_at ? Carbon::parse($application->created_at)->format('Y-m-d H:i:s') : 'N/A',
+                    'status' => $application->status ?? 'N/A',
                     'driver_conflict' => $hasConflict
                 ];
             })
@@ -1076,16 +1076,16 @@ public function owner_trip_list(Request $request)
 
         if (empty($applications)) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'No drivers applied for this trip.',
-                'data'    => []
+                'data' => []
             ], 200);
         }
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Applied driver list retrieved successfully.',
-            'data'    => $applications,
+            'data' => $applications,
             'city' => $city1
         ], 200);
     }
@@ -1096,9 +1096,9 @@ public function owner_trip_list(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'driver_id' => 'required|integer|exists:driver,id',
-            'trip_id'   => 'required|integer|exists:trip_applied,trip_id',
-            'reason'    => 'required|string|max:255',
-            'remarks'   => 'nullable|string|max:500',
+            'trip_id' => 'required|integer|exists:trip_applied,trip_id',
+            'reason' => 'required|string|max:255',
+            'remarks' => 'nullable|string|max:500',
         ]);
 
         if ($validator->fails()) {
@@ -1110,19 +1110,19 @@ public function owner_trip_list(Request $request)
             ->where('d_id', $request->driver_id)
             ->where('trip_id', $request->trip_id)
             ->update([
-                'reason'     => $request->reason,
-                'remarks'    => $request->remarks,
+                'reason' => $request->reason,
+                'remarks' => $request->remarks,
                 'updated_at' => now()
             ]);
 
         if ($updated) {
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => 'Trip remarks updated successfully.'
             ]);
         } else {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'Trip not found or update failed.'
             ]);
         }
@@ -1183,22 +1183,22 @@ public function owner_trip_list(Request $request)
 
 
             $details[] = [
-                'name'          => $license->cof ?? 'N/A',
-                'contact'       => $driver->phone,
+                'name' => $license->cof ?? 'N/A',
+                'contact' => $driver->phone,
                 // 'start_date'    => \Carbon\Carbon::parse($trip->st_date)->format('d/m/Y'),
                 // 'end_date'      => \Carbon\Carbon::parse($trip->end_date)->format('d/m/Y'),
                 'start_date' => Carbon::parse($trip->st_date)->format('d-m-Y'),
-                'end_date'   => Carbon::parse($trip->end_date)->format('d-m-Y'),
-                'start_time'    => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i:s') : null,
-                'no_of_days'    => $trip->no_days,
-                'veh_type'      => $trip->veh_type,
-                'veh_name'      => $trip->veh_name,
-                'veh_number'      => $trip->veh_number,
-                'about'         => $driver->about ?? '',
+                'end_date' => Carbon::parse($trip->end_date)->format('d-m-Y'),
+                'start_time' => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i:s') : null,
+                'no_of_days' => $trip->no_days,
+                'veh_type' => $trip->veh_type,
+                'veh_name' => $trip->veh_name,
+                'veh_number' => $trip->veh_number,
+                'about' => $driver->about ?? '',
                 'salary_perday' => $trip->salary_perday,
-                'wait_charge'   => $trip->wait_charge,
-                'food'          => $trip->food,
-                'avg_salary'    => $avgSalary,
+                'wait_charge' => $trip->wait_charge,
+                'food' => $trip->food,
+                'avg_salary' => $avgSalary,
             ];
         }
 
@@ -1226,13 +1226,13 @@ public function owner_trip_list(Request $request)
             // }
 
             $feedback[] = [
-                'name'      => $fb->owner_name,
+                'name' => $fb->owner_name,
                 'start_loc' => $fb->st_city,
-                'end_loc'   => $fb->end_city,
-                'remarks'   => $fb->remarks ?? '',
-                'ratings'   => $fb->rating,
+                'end_loc' => $fb->end_city,
+                'remarks' => $fb->remarks ?? '',
+                'ratings' => $fb->rating,
                 // 'date'      => $fb->created_at ? \Carbon\Carbon::parse($fb->created_at)->format('d/m/Y') : null,
-                'date'      => $fb->created_at ? Carbon::parse($fb->created_at)->format('d-m-Y') : null,
+                'date' => $fb->created_at ? Carbon::parse($fb->created_at)->format('d-m-Y') : null,
                 'img' => $driver->img ? asset($driver->img) : 'N/A',
 
 
@@ -1247,13 +1247,13 @@ public function owner_trip_list(Request $request)
             'status' => true,
             'message' => 'Driver profile fetched successfully',
             'data' => [
-                'name'          => $driver->name,
+                'name' => $driver->name,
                 'img' => $driver->img ? asset($driver->img) : 'N/A',
-                'ratings'       => $avgRating,
-                'cov'           => $license->cov ?? 'N/A',
-                'badge_holder'  => $badge_holder,
-                'details'       => $details,
-                'feedback'      => $feedback,
+                'ratings' => $avgRating,
+                'cov' => $license->cov ?? 'N/A',
+                'badge_holder' => $badge_holder,
+                'details' => $details,
+                'feedback' => $feedback,
             ]
         ]);
     }
@@ -1264,15 +1264,15 @@ public function owner_trip_list(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'driver_id' => 'required|integer|exists:driver,id',
-            'trip_id'   => 'required|integer|exists:trip,id',
-            'owner_id'  => 'required|integer|exists:corporate,id',
+            'trip_id' => 'required|integer|exists:trip,id',
+            'owner_id' => 'required|integer|exists:corporate,id',
         ], [
             'driver_id.required' => 'Driver ID is required.',
-            'trip_id.required'   => 'Trip ID is required.',
-            'owner_id.required'  => 'Owner ID is required.',
-            'driver_id.exists'   => 'Driver not found.',
-            'trip_id.exists'     => 'Trip not found.',
-            'owner_id.exists'    => 'Owner not found.',
+            'trip_id.required' => 'Trip ID is required.',
+            'owner_id.required' => 'Owner ID is required.',
+            'driver_id.exists' => 'Driver not found.',
+            'trip_id.exists' => 'Trip not found.',
+            'owner_id.exists' => 'Owner not found.',
         ]);
 
         if ($validator->fails()) {
@@ -1280,8 +1280,8 @@ public function owner_trip_list(Request $request)
         }
 
         $driverId = $request->driver_id;
-        $tripId   = $request->trip_id;
-        $ownerId  = $request->owner_id;
+        $tripId = $request->trip_id;
+        $ownerId = $request->owner_id;
 
         $driver = DB::table('driver')->where('id', $driverId)->first();
         $license = DB::table('license')->where('d_id', $driverId)->first();
@@ -1298,7 +1298,7 @@ public function owner_trip_list(Request $request)
                 'trip.no_days',
                 'trip.veh_type',
                 'trip.veh_name',
-                 'trip.veh_number',
+                'trip.veh_number',
                 'trip_applied.salary_perday',
                 'trip_applied.wait_charge',
                 'trip_applied.food'
@@ -1307,9 +1307,9 @@ public function owner_trip_list(Request $request)
 
         if (!$trip) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'Trip data not found for driver.',
-                'data'    => []
+                'data' => []
             ], 200);
         }
 
@@ -1333,34 +1333,34 @@ public function owner_trip_list(Request $request)
 
 
         $data = [
-            'name'          => $driver->name ?? 'N/A',
-            'img'           => $driver->img ? asset($driver->img) : 'N/A',
-            'ratings'       => $avgRating,
-            'cov'           => $license->cov ?? 'N/A',
-            'badge_holder'  => $badge_holder,
-            'start_date'    => $trip->st_date ? Carbon::parse($trip->st_date)->format('d-m-Y') : 'N/A',
-            'end_date'      => $trip->end_date ? Carbon::parse($trip->end_date)->format('d-m-Y') : 'N/A',
-            'start_time'    => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i:s') : 'N/A',
-            'no_of_days'    => $trip->no_days,
-            'veh_type'      => $trip->veh_type,
-            'veh_name'      => $trip->veh_name,
-            'veh_number'      => $trip->veh_number,
-            'about'         => $driver->about ?? '',
+            'name' => $driver->name ?? 'N/A',
+            'img' => $driver->img ? asset($driver->img) : 'N/A',
+            'ratings' => $avgRating,
+            'cov' => $license->cov ?? 'N/A',
+            'badge_holder' => $badge_holder,
+            'start_date' => $trip->st_date ? Carbon::parse($trip->st_date)->format('d-m-Y') : 'N/A',
+            'end_date' => $trip->end_date ? Carbon::parse($trip->end_date)->format('d-m-Y') : 'N/A',
+            'start_time' => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i:s') : 'N/A',
+            'no_of_days' => $trip->no_days,
+            'veh_type' => $trip->veh_type,
+            'veh_name' => $trip->veh_name,
+            'veh_number' => $trip->veh_number,
+            'about' => $driver->about ?? '',
             'salary_perday' => $trip->salary_perday,
-            'wait_charge'   => $trip->wait_charge,
-            'food'          => $trip->food,
-            'avg_salary'    => $avgSalary,
-            'trip_code'     => $trip->trip_code ?? 'N/A',
-            'contact'       => $driver->phone ?? 'N/A',
+            'wait_charge' => $trip->wait_charge,
+            'food' => $trip->food,
+            'avg_salary' => $avgSalary,
+            'trip_code' => $trip->trip_code ?? 'N/A',
+            'contact' => $driver->phone ?? 'N/A',
             'cancel_count' => $remaining_cancels
 
 
         ];
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Driver basic details fetched successfully.',
-            'data'    => $data
+            'data' => $data
         ], 200);
     }
 
@@ -1370,16 +1370,16 @@ public function owner_trip_list(Request $request)
     public function update_Trip_Application_Status(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'trip_id'   => 'required|integer|exists:trip_applied,trip_id',
+            'trip_id' => 'required|integer|exists:trip_applied,trip_id',
             'driver_id' => 'required|integer|exists:trip_applied,d_id',
-            'status'    => 'required|string|in:Hired,Reject',
+            'status' => 'required|string|in:Hired,Reject',
         ], [
-            'trip_id.required'   => 'Trip ID is required.',
-            'trip_id.exists'     => 'Trip not found.',
+            'trip_id.required' => 'Trip ID is required.',
+            'trip_id.exists' => 'Trip not found.',
             'driver_id.required' => 'Driver ID is required.',
-            'driver_id.exists'   => 'Driver not found.',
-            'status.required'    => 'Status is required.',
-            'status.in'          => 'Status must be either "Hired" or "Reject".',
+            'driver_id.exists' => 'Driver not found.',
+            'status.required' => 'Status is required.',
+            'status.in' => 'Status must be either "Hired" or "Reject".',
         ]);
 
         if ($validator->fails()) {
@@ -1391,7 +1391,7 @@ public function owner_trip_list(Request $request)
 
         // Initialize data array for update
         $appliedData = [
-            'status'     => $request->status,
+            'status' => $request->status,
             'updated_at' => now(),
         ];
 
@@ -1410,11 +1410,11 @@ public function owner_trip_list(Request $request)
         $tripUpdated = DB::table('trip')
             ->where('id', $request->trip_id)
             ->update([
-                'status'     => $request->status,
+                'status' => $request->status,
                 'updated_at' => now()
             ]);
 
-        $dr =  Driver::find($request->driver_id);
+        $dr = Driver::find($request->driver_id);
 
         if ($request->status == 'Hired') {
 
@@ -1450,12 +1450,12 @@ public function owner_trip_list(Request $request)
 
         if ($appliedUpdated || $tripUpdated) {
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => 'Trip and application status updated successfully.',
             ], 200);
         } else {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'No matching record found or no change made.',
             ], 200);
         }
@@ -1468,8 +1468,8 @@ public function owner_trip_list(Request $request)
             'owner_id' => 'required|integer|exists:corporate,id',
         ], [
             'owner_id.required' => 'Owner ID is required.',
-            'owner_id.integer'  => 'Owner ID must be a number.',
-            'owner_id.exists'   => 'Owner not found.',
+            'owner_id.integer' => 'Owner ID must be a number.',
+            'owner_id.exists' => 'Owner not found.',
         ]);
 
         if ($validator->fails()) {
@@ -1485,19 +1485,19 @@ public function owner_trip_list(Request $request)
 
                 $tripApplied = \App\Models\TripApplied::where('trip_id', $trip->id)->first();
                 return [
-                    'id'         => $trip->id,
-                    'title'      => $trip->title,
-                    'st_loc'     => $trip->st_city,
-                    'st_dest'    => $trip->end_city,
+                    'id' => $trip->id,
+                    'title' => $trip->title,
+                    'st_loc' => $trip->st_city,
+                    'st_dest' => $trip->end_city,
 
                     // 'st_date'    => $trip->st_date ? \Carbon\Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
                     // 'end_date'   => $trip->end_date ? \Carbon\Carbon::parse($trip->end_date)->format('d/m/Y') : 'N/A',
                     // 'st_time'    => $trip->st_time ? \Carbon\Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
-                    'st_date'    => $trip->st_date ? Carbon::parse($trip->st_date)->format('d-m-Y') : 'N/A',
-                    'end_date'   => $trip->end_date ? Carbon::parse($trip->end_date)->format('d-m-Y') : 'N/A',
-                    'st_time'    => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
-                    'avg_salary'    => ($tripApplied->salary_perday) ? ($tripApplied->salary_perday) : 'N/A',
-                    'status'     => $trip->status ?? 'N/A',
+                    'st_date' => $trip->st_date ? Carbon::parse($trip->st_date)->format('d-m-Y') : 'N/A',
+                    'end_date' => $trip->end_date ? Carbon::parse($trip->end_date)->format('d-m-Y') : 'N/A',
+                    'st_time' => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
+                    'avg_salary' => ($tripApplied->salary_perday) ? ($tripApplied->salary_perday) : 'N/A',
+                    'status' => $trip->status ?? 'N/A',
                     // 'created_at' => $trip->created_at ? \Carbon\Carbon::parse($trip->created_at)->diffForHumans() : 'N/A',
                     'created_at' => $trip->created_at ? Carbon::parse($trip->created_at)->format('Y-m-d H:i:s') : 'N/A',
 
@@ -1506,16 +1506,16 @@ public function owner_trip_list(Request $request)
 
         if ($trips->isEmpty()) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'No completed trips found for this owner.',
-                'data'    => []
+                'data' => []
             ], 200);
         }
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Completed trips retrieved successfully.',
-            'data'    => $trips
+            'data' => $trips
         ], 200);
     }
 
@@ -1526,7 +1526,7 @@ public function owner_trip_list(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'owner_id' => 'required|integer|exists:corporate,id',
-            'trip_id'  => 'required|integer|exists:trip,id',
+            'trip_id' => 'required|integer|exists:trip,id',
         ]);
 
         if ($validator->fails()) {
@@ -1541,7 +1541,7 @@ public function owner_trip_list(Request $request)
 
         if (!$trip) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'Trip not found for the given owner.',
             ], 200);
         }
@@ -1564,28 +1564,28 @@ public function owner_trip_list(Request $request)
 
         $data = [
 
-            'start_loc'        => $trip->st_loc,
-            'end_loc'          => $trip->st_dest,
-            'driver_name'       => $tripApplied->driver_name ?? 'N/A',
-            'start_date'       => $trip->st_date ? Carbon::parse($trip->st_date)->format('d-m-Y') : 'N/A',
-            'end_date'         => $trip->end_date ? Carbon::parse($trip->end_date)->format('d-m-Y') : 'N/A',
-            'start_time'       => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
-            'no_days'       => $trip->no_days ?? 'N/A',
-            'veh_type'      => $trip->veh_type ?? 'N/A',
-            'veh_name'      => $trip->veh_name ?? 'N/A',
-             'veh_number'      => $trip->veh_number,
+            'start_loc' => $trip->st_loc,
+            'end_loc' => $trip->st_dest,
+            'driver_name' => $tripApplied->driver_name ?? 'N/A',
+            'start_date' => $trip->st_date ? Carbon::parse($trip->st_date)->format('d-m-Y') : 'N/A',
+            'end_date' => $trip->end_date ? Carbon::parse($trip->end_date)->format('d-m-Y') : 'N/A',
+            'start_time' => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
+            'no_days' => $trip->no_days ?? 'N/A',
+            'veh_type' => $trip->veh_type ?? 'N/A',
+            'veh_name' => $trip->veh_name ?? 'N/A',
+            'veh_number' => $trip->veh_number,
             'salary_perday' => $tripApplied->salary_perday ?? 'N/A',
-            'wait_charge'   => $tripApplied->wait_charge ?? 'N/A',
-            'food'          => $tripApplied->food ?? 'N/A',
-            'avg_salary'    => ($tripApplied->salary_perday ?? 0) * ($trip->no_days ?? 0),
-            't_code'        => $tripApplied->trip_code ?? 'N/A'
+            'wait_charge' => $tripApplied->wait_charge ?? 'N/A',
+            'food' => $tripApplied->food ?? 'N/A',
+            'avg_salary' => ($tripApplied->salary_perday ?? 0) * ($trip->no_days ?? 0),
+            't_code' => $tripApplied->trip_code ?? 'N/A'
 
         ];
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Trip profile fetched successfully.',
-            'data'    => $data
+            'data' => $data
         ], 200);
     }
 
@@ -1599,10 +1599,10 @@ public function owner_trip_list(Request $request)
         if ($request->hasHeader('Authorization')) {
             $validator = Validator::make($request->all(), [
                 'owner_id' => 'required|integer|exists:corporate,id',
-                'trip_id'  => 'required|integer|exists:trip,id',
-                'status'   => 'required|in:Cancel',
-                'remarks'  => 'nullable|string',
-                'reason'   => 'nullable|string',
+                'trip_id' => 'required|integer|exists:trip,id',
+                'status' => 'required|in:Cancel',
+                'remarks' => 'nullable|string',
+                'reason' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -1612,12 +1612,12 @@ public function owner_trip_list(Request $request)
             $ownerId = $request->owner_id;
         }
 
-        $tripId  = $request->trip_id;
+        $tripId = $request->trip_id;
 
         if ($request->hasHeader('Authorization')) {
-            $user =  auth('sanctum')->user();
+            $user = auth('sanctum')->user();
         } else {
-            $user =  auth('corporate')->user();
+            $user = auth('corporate')->user();
         }
 
         //  Check trip belongs to owner
@@ -1650,32 +1650,32 @@ public function owner_trip_list(Request $request)
         // if ($monthlyCancelCount < 3) {
         // Cancel directly
 
-        $trip_st = ($monthlyCancelCount < 3) ?  $request->status : 'Cancel Requested';
+        $trip_st = ($monthlyCancelCount < 3) ? $request->status : 'Cancel Requested';
 
-        $trip_tab_st = ($monthlyCancelCount < 3) ?  'Cancel' : 'Request';
+        $trip_tab_st = ($monthlyCancelCount < 3) ? 'Cancel' : 'Request';
 
         DB::table('trip')
             ->where('id', $tripId)
             ->update([
-                'status'     => $trip_st,
+                'status' => $trip_st,
                 'updated_at' => now()
             ]);
 
         DB::table('trip_applied')
             ->where('trip_id', $tripId)
             ->update([
-                'status'     => $trip_st,
+                'status' => $trip_st,
                 'updated_at' => now()
             ]);
 
         DB::table('cancel_req')->insert([
-            'trip_id'   => $tripId,
-            'type'      => $user->type,
-            'remarks'   => $request->remarks,
-            'reason'    => $request->reason,
-            'status'    => $trip_tab_st,
-            'c_by'      => $user->id,
-            'c_type'    => $user->type,
+            'trip_id' => $tripId,
+            'type' => $user->type,
+            'remarks' => $request->remarks,
+            'reason' => $request->reason,
+            'status' => $trip_tab_st,
+            'c_by' => $user->id,
+            'c_type' => $user->type,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -1703,7 +1703,7 @@ public function owner_trip_list(Request $request)
             'title' => 'Your Trip Status Updated to : ' . $request->status,
             'body' => 'Your Trip Status Updated to : ' . $request->status,
             'status' => 'active',
-            'c_by' =>  $user->id, // Assuming you want to log who created this notification
+            'c_by' => $user->id, // Assuming you want to log who created this notification
         ])->save();
 
 
@@ -1719,7 +1719,7 @@ public function owner_trip_list(Request $request)
 
         if ($request->hasHeader('Authorization')) {
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => 'Trip cancelled successfully.',
             ]);
         } else {
@@ -1846,22 +1846,22 @@ public function owner_trip_list(Request $request)
     public function owner_edit_profile(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id'    => 'required|integer|exists:corporate,id',
-            'name'  => 'required|string',
-            'ad_1'  => 'required|string',
-            'ad_2'  => 'nullable|string',
-            'city'  => 'required|string',
+            'id' => 'required|integer|exists:corporate,id',
+            'name' => 'required|string',
+            'ad_1' => 'required|string',
+            'ad_2' => 'nullable|string',
+            'city' => 'required|string',
             'state' => 'required|string',
-            'pin'   => 'required|digits:6',
+            'pin' => 'required|digits:6',
         ]); {
             $validator = Validator::make($request->all(), [
-                'id'    => 'required|integer|exists:corporate,id',
-                'name'  => 'required|string',
-                'ad_1'  => 'required|string',
-                'ad_2'  => 'nullable|string',
-                'city'  => 'required|string',
+                'id' => 'required|integer|exists:corporate,id',
+                'name' => 'required|string',
+                'ad_1' => 'required|string',
+                'ad_2' => 'nullable|string',
+                'city' => 'required|string',
                 'state' => 'required|string',
-                'pin'   => 'required|digits:6',
+                'pin' => 'required|digits:6',
             ]);
 
             if ($validator->fails()) {
@@ -1872,32 +1872,32 @@ public function owner_trip_list(Request $request)
             }
 
             $updateData = [
-                'name'  => $request->name,
-                'ad_1'  => $request->ad_1,
-                'ad_2'  => $request->ad_2,
-                'city'  => $request->city,
+                'name' => $request->name,
+                'ad_1' => $request->ad_1,
+                'ad_2' => $request->ad_2,
+                'city' => $request->city,
                 'state' => $request->state,
-                'pin'   => $request->pin,
+                'pin' => $request->pin,
             ];
             $updateData = [
-                'name'  => $request->name,
-                'ad_1'  => $request->ad_1,
-                'ad_2'  => $request->ad_2,
-                'city'  => $request->city,
+                'name' => $request->name,
+                'ad_1' => $request->ad_1,
+                'ad_2' => $request->ad_2,
+                'city' => $request->city,
                 'state' => $request->state,
-                'pin'   => $request->pin,
+                'pin' => $request->pin,
             ];
 
             DB::table('corporate')->where('id', $request->id)->update($updateData);
             DB::table('corporate')->where('id', $request->id)->update($updateData);
 
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => 'Profile updated successfully.',
             ], 200);
         }
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Profile updated successfully.',
         ], 200);
     }
@@ -1908,11 +1908,11 @@ public function owner_trip_list(Request $request)
     public function update_owner_logo(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id'   => 'required|integer|exists:corporate,id',
+            'id' => 'required|integer|exists:corporate,id',
             'logo' => 'required|image',
         ]); {
             $validator = Validator::make($request->all(), [
-                'id'   => 'required|integer|exists:corporate,id',
+                'id' => 'required|integer|exists:corporate,id',
                 'logo' => 'required|image',
             ]);
 
@@ -1944,19 +1944,19 @@ public function owner_trip_list(Request $request)
                 $fullUrl = asset($relativePath);  // asset() gives full http://your-domain.com/path
 
                 return response()->json([
-                    'status'  => true,
+                    'status' => true,
                     'message' => 'Logo updated successfully.',
-                    'path'    => $fullUrl,
+                    'path' => $fullUrl,
                 ], 200);
             }
 
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'Logo file is missing.',
             ], 200);
         }
         return response()->json([
-            'status'  => false,
+            'status' => false,
             'message' => 'Logo file is missing.',
         ], 200);
     }
@@ -1968,12 +1968,12 @@ public function owner_trip_list(Request $request)
         $validator = Validator::make($request->all(), [
             'trip_id' => 'required|integer|exists:trip,id',
             'remarks' => 'nullable|string',
-            'rating'  => 'required|integer|min:1|max:5',
+            'rating' => 'required|integer|min:1|max:5',
         ], [
             'trip_id.required' => 'Trip ID is required.',
-            'rating.required'  => 'Rating is required.',
-            'rating.min'       => 'Minimum rating is 1.',
-            'rating.max'       => 'Maximum rating is 5.',
+            'rating.required' => 'Rating is required.',
+            'rating.min' => 'Minimum rating is 1.',
+            'rating.max' => 'Maximum rating is 5.',
         ]);
 
         if ($validator->fails()) {
@@ -1983,7 +1983,7 @@ public function owner_trip_list(Request $request)
         // Get the logged-in driver ID
         $owner = auth('sanctum')->user()->id ?? null;
 
-        $d_id =  TripApplied::where('trip_id', $request->trip_id)->where('status', 'End')->first();
+        $d_id = TripApplied::where('trip_id', $request->trip_id)->where('status', 'End')->first();
 
         // if (!$owner) {
         //     return response()->json([
@@ -1994,59 +1994,59 @@ public function owner_trip_list(Request $request)
 
         // Store feedback
         DB::table('feedback')->insert([
-            'd_id'       => $d_id->d_id,
-            't_id'       => $request->trip_id,
-            'remarks'    => $request->remarks ?? null,
-            'rating'     => $request->rating,
-            'c_by'       => $owner,
+            'd_id' => $d_id->d_id,
+            't_id' => $request->trip_id,
+            'remarks' => $request->remarks ?? null,
+            'rating' => $request->rating,
+            'c_by' => $owner,
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
         ]);
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Feedback submitted successfully.'
         ], 200);
     }
 
 
-public function report(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'trip_id'   => 'required|integer|exists:trip_applied,trip_id',
-        'driver_id'      => 'required|integer', 
-        'reason'    => 'nullable|string',
-        'remarks'   => 'required|string',
-    ]);
+    public function report(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'trip_id' => 'required|integer|exists:trip_applied,trip_id',
+            'driver_id' => 'required|integer',
+            'reason' => 'nullable|string',
+            'remarks' => 'required|string',
+        ]);
 
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 200);
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 200);
+        }
+
+        $user = auth('sanctum')->user(); // Owner user
+        // Log::info('Owner Auth ID: ' . ($user->id ?? 'none'));
+
+        $updated = DB::table('trip_applied')
+            ->where('trip_id', $request->trip_id)
+            ->where('d_id', $request->driver_id)  // Add d_id condition
+            // ->where('c_by', $user->id)  
+            ->update([
+                'reason' => $request->reason,
+                'remarks' => $request->remarks,
+                'report_sts' => 'pending',
+                'updated_at' => now(),
+            ]);
+
+        if ($updated) {
+            return response()->json([
+                'status' => true,
+                'message' => 'Report submitted successfully.',
+            ]);
+        } else {
+            return response()->json([
+                'status' => false,
+                'message' => 'No matching record found or nothing to update.',
+            ]);
+        }
     }
-
-    $user = auth('sanctum')->user(); // Owner user
-    // Log::info('Owner Auth ID: ' . ($user->id ?? 'none'));
-
-    $updated = DB::table('trip_applied')
-        ->where('trip_id', $request->trip_id)
-        ->where('d_id', $request->driver_id)  // Add d_id condition
-        // ->where('c_by', $user->id)  
-        ->update([
-            'reason'     => $request->reason,
-            'remarks'    => $request->remarks,
-            'report_sts' => 'pending',
-            'updated_at' => now(),
-        ]);
-
-    if ($updated) {
-        return response()->json([
-            'status'  => true,
-            'message' => 'Report submitted successfully.',
-        ]);
-    } else {
-        return response()->json([
-            'status'  => false,
-            'message' => 'No matching record found or nothing to update.',
-        ]);
-    }
-}
 }

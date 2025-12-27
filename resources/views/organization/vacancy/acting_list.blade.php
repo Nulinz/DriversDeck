@@ -72,8 +72,8 @@
                             <div class="d-flex align-items-start justify-content-between mb-0_8 gap-5">
 
                                 @if ($selectedJob->status == 'End')
-                                    <a class="btn btn-md btn-primary" data-bs-toggle="modal"
-                                        data-bs-target="#feed_pop_at"><i class="fa fa-fw fa-plus"></i> Add Feedback</a>
+                                    <a class="btn btn-md btn-primary" data-bs-toggle="modal" data-bs-target="#feed_pop_at"><i
+                                            class="fa fa-fw fa-plus"></i> Add Feedback</a>
                                 @endif
                                 <!-- BEGIN primary modal -->
                                 <div class="modal model-sm fade" id="feed_pop_at" tabindex="-1" role="dialog"
@@ -92,21 +92,22 @@
 
                                                     <div class="col-md-8 mx-auto">
                                                         <div class="star-rating">
-                                                            <input type="radio" id="star5" name="rating"
-                                                                value="5"><label for="star5">★</label>
-                                                            <input type="radio" id="star4" name="rating"
-                                                                value="4"><label for="star4">★</label>
-                                                            <input type="radio" id="star3" name="rating"
-                                                                value="3"><label for="star3">★</label>
-                                                            <input type="radio" id="star2" name="rating"
-                                                                value="2"><label for="star2">★</label>
-                                                            <input type="radio" id="star1" name="rating"
-                                                                value="1"><label for="star1">★</label>
+                                                            <input type="radio" id="star5" name="rating" value="5"><label
+                                                                for="star5">★</label>
+                                                            <input type="radio" id="star4" name="rating" value="4"><label
+                                                                for="star4">★</label>
+                                                            <input type="radio" id="star3" name="rating" value="3"><label
+                                                                for="star3">★</label>
+                                                            <input type="radio" id="star2" name="rating" value="2"><label
+                                                                for="star2">★</label>
+                                                            <input type="radio" id="star1" name="rating" value="1"><label
+                                                                for="star1">★</label>
                                                         </div>
                                                     </div>
                                                     <div class="mb-3 col-md-12">
                                                         <label class="form-label fw-bold">Remarks</label>
-                                                        <textarea class="form-control" name="remarks" id="" rows="4"></textarea>
+                                                        <textarea class="form-control" name="remarks" id=""
+                                                            rows="4"></textarea>
                                                     </div>
                                                     <div class="row g-2">
                                                         <div class="col-6">
@@ -114,8 +115,8 @@
                                                                 data-bs-dismiss="modal">Cancel</button>
                                                         </div>
                                                         <div class="col-6">
-                                                            <input type="submit" class="btn btn-primary w-100"
-                                                                name="" value="Submit">
+                                                            <input type="submit" class="btn btn-primary w-100" name=""
+                                                                value="Submit">
                                                         </div>
                                                     </div>
                                                 </form>
@@ -126,8 +127,8 @@
                                 <!-- END primary modal -->
 
                                 @if ($selectedJob->status == 'End' || $selectedJob->status == 'Start')
-                                    <a class="btn btn-md btn-primary" data-bs-toggle="modal"
-                                        data-bs-target="#reason_pop_at"><i class="fa fa-fw fa-plus"></i> Report</a>
+                                    <a class="btn btn-md btn-primary" data-bs-toggle="modal" data-bs-target="#reason_pop_at"><i
+                                            class="fa fa-fw fa-plus"></i> Report</a>
                                 @endif
 
                                 <!-- BEGIN primary modal -->
@@ -138,7 +139,8 @@
 
                                             <div class="modal-body">
                                                 <img src="" alt="">
-                                                {{-- <h5 class="fs-4 mb-0 fs-3 text-center fw-bold modal-title">Ratings!</h5>
+                                                {{-- <h5 class="fs-4 mb-0 fs-3 text-center fw-bold modal-title">Ratings!
+                                                </h5>
                                                 <p class="mt-2 text-center mb-0">Looks like you haven’t added anything to
                                                     your <br> cart yet</p> --}}
                                                 <form action="{{ route('organization.report.add') }}" method="post">
@@ -147,8 +149,7 @@
 
                                                     <div class="col-md-8 mx-auto">
                                                         <div class="star-rating">
-                                                            <select class="form-select form-select-lg" name="reason"
-                                                                id="">
+                                                            <select class="form-select form-select-lg" name="reason" id="">
                                                                 <option value="" selected disabled>Select Option
                                                                 </option>
                                                                 <option value="Driver using phone while driving">Driver
@@ -178,8 +179,8 @@
                                                                 data-bs-dismiss="modal">Cancel</button>
                                                         </div>
                                                         <div class="col-6">
-                                                            <input type="submit" class="btn btn-primary w-100"
-                                                                name="" value="Submit">
+                                                            <input type="submit" class="btn btn-primary w-100" name=""
+                                                                value="Submit">
                                                         </div>
                                                     </div>
                                                 </form>
@@ -203,12 +204,8 @@
                                         <th>#</th>
                                         <th>Name</th>
                                         <th>Register Date</th>
-                                        <th>Contact</th>
-                                        <th>Location</th>
-                                        <th>Salary</th>
-                                        <th>Wait Charge</th>
-                                        <th>Food</th>
-                                        <th>Action</th>
+                                        <th>License type</th>
+                                        <th>View Details</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -217,21 +214,23 @@
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
                                             <td>
-                                                {{-- <img src="{{ asset('assets/images/avatar.png') }}" width="40"
-                                                    height="40" class="rounded-circle me-2" alt="Avatar"> --}}
+                                                {{-- <img src="{{ asset('assets/images/avatar.png') }}" width="40" height="40"
+                                                    class="rounded-circle me-2" alt="Avatar"> --}}
                                                 {{ $apply['driver_name'] }}
                                             </td>
                                             <td>{{ $apply['created_at'] }}</td>
-                                            <td>{{ $apply['driver_phone'] }}</td>
-                                            <td>{{ $apply['location'] }}</td>
-                                            <td>{{ $apply['salary_per_day'] }}</td>
-                                            <td>{{ $apply['wait_charge'] }}</td>
-                                            <td>{{ $apply['food'] }}</td>
+                                            <td>{{ $apply['license_type'] }}</td>
+                                            {{-- ✅ VIEW DETAILS --}}
                                             <td>
+                                                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                                                    data-bs-target="#viewModal{{ $apply['id'] }}">
+                                                    Click
+                                                </button>
+                                            </td>
+                                            <!-- <td>
                                                 @if ($selectedJob->status == 'pending')
                                                     @if (!$apply['driver_conflict'])
-                                                        <a data-bs-toggle="modal"
-                                                            data-bs-target="#statusModal{{ $apply['id'] }}">
+                                                        <a data-bs-toggle="modal" data-bs-target="#statusModal{{ $apply['id'] }}">
                                                             <i class="fs-4 text-dark fa fa-fw fa-edit me-3"></i>
                                                         </a>
                                                         <a
@@ -242,7 +241,7 @@
                                                         <span class="fs-4 text-dark me-3">&times;</span>
                                                     @endif
                                                 @endif
-                                            </td>
+                                            </td> -->
                                             <td>
                                                 <span
                                                     class="badge bg-{{ $apply['act_status'] == 'Hired' ? 'success' : 'danger' }}">
@@ -253,8 +252,8 @@
                                         </tr>
 
                                         <!-- Status Modal for each application -->
-                                        <div class="modal fade" id="statusModal{{ $apply['id'] }}" tabindex="-1"
-                                            role="dialog" aria-hidden="true">
+                                        <div class="modal fade" id="statusModal{{ $apply['id'] }}" tabindex="-1" role="dialog"
+                                            aria-hidden="true">
                                             <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
@@ -284,6 +283,37 @@
                                     @endforeach
                                 </tbody>
                             </table>
+                            @foreach ($appliedListActing as $apply)
+<div class="modal fade" id="viewModal{{ $apply['id'] }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Contact Admin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                <p class="text-muted mb-2">
+                    For further process, please contact admin
+                </p>
+                <p><b>Drivers Deck</b></p>
+
+                <h5 class="fw-bold text-dark">
+                    <i class="fa fa-phone me-2"></i>
+                     9600166472
+                </h5>
+
+                <a href="tel:+919876543210"
+                   class="btn btn-success btn-sm mt-3">
+                    <i class="fa fa-phone"></i> Call Admin
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+@endforeach
                         </div>
                     </div>
                 </div>
@@ -293,7 +323,7 @@
 
     <script src="{{ asset('assets/js/jquery.js') }}"></script>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             // Datatables Responsive
             $("#datatables-reponsive").DataTable({
                 responsive: true,
@@ -315,8 +345,8 @@
                 <div class="modal-body">
                     <img src="" alt="">
                     {{-- <h5 class="fs-4 mb-0 fs-3 text-center fw-bold modal-title">Ratings!</h5>
-                        <p class="mt-2 text-center mb-0">Looks like you haven’t added anything to
-                            your <br> cart yet</p> --}}
+                    <p class="mt-2 text-center mb-0">Looks like you haven’t added anything to
+                        your <br> cart yet</p> --}}
                     <form action="{{ route('act_trip_cancel_owner') }}" method="post">
                         @csrf
                         <input type="hidden" name="trip_id" value={{ $selectedJob->id }}>

@@ -44,7 +44,7 @@
                             @endif
                             <div class="d-flex align-items-center justify-content-between mb-0_8">
                                 <h5 class="fs-6 text-muted fw-bold mb-0">Job Type</h5>
-                                <p class="fs-6 text-dark fw-bold mb-0">Full Time</p>
+                                <p class="fs-6 text-dark fw-bold mb-0">Full Time Driver</p>
                             </div>
                             <div class="d-flex align-items-center justify-content-between mb-0_8">
                                 <h6 class="text-muted fw-bold mb-0">Vehicle Type</h6>
@@ -96,9 +96,10 @@
                                         {{-- <th>Experience</th> --}}
                                         <th>Register Date</th>
                                         <!-- <th>Contact Number</th>
-                                            <th>Location</th>
-                                            <th>Action</th> -->
+                                                <th>Location</th>
+                                                <th>Action</th> -->
                                         <th>License type</th>
+                                        <th>View Details</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
@@ -114,29 +115,36 @@
                                             {{-- <td>{{ $apply['experience'] }}</td> --}}
                                             <td>{{ $apply['created_at'] }}</td>
                                             <td>{{ $apply['license_type'] }}</td>
+                                            {{-- ✅ VIEW DETAILS --}}
+                                            <td>
+                                                <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
+                                                    data-bs-target="#viewModal{{ $apply['id'] }}">
+                                                    Click
+                                                </button>
+                                            </td>
                                             <!-- <td>
-                                                @if ($selectedJob->status == 'approve')
-                                                    @if (!$apply['conflict'])
-                                                        @if (!$apply['subscription_limit_reached'])
-                                                            <a data-bs-toggle="modal" data-bs-target="#statusModal{{ $apply['id'] }}">
-                                                                <i class="fs-4 text-dark fa fa-fw fa-edit me-3"></i>
-                                                            </a>
-                                                            <a
-                                                                href="{{ route('organization.hired.ft_driver_profile', ['id' => $apply['driver']['id'] ?? '']) }}">
-                                                                <i class="fs-4 text-dark fa fa-external-link-alt"></i>
-                                                            </a>
-                                                        @else
-                                                            <span class="fs-4 text-warning me-3"
-                                                                title="Subscription limit reached (5 drivers maximum for your plan)">
-                                                                <i class="fa fa-exclamation-triangle"></i>
-                                                            </span>
-                                                            <span class="badge bg-warning text-dark">Limit Reached</span>
+                                                        @if ($selectedJob->status == 'approve')
+                                                            @if (!$apply['conflict'])
+                                                                @if (!$apply['subscription_limit_reached'])
+                                                                    <a data-bs-toggle="modal" data-bs-target="#statusModal{{ $apply['id'] }}">
+                                                                        <i class="fs-4 text-dark fa fa-fw fa-edit me-3"></i>
+                                                                    </a>
+                                                                    <a
+                                                                        href="{{ route('organization.hired.ft_driver_profile', ['id' => $apply['driver']['id'] ?? '']) }}">
+                                                                        <i class="fs-4 text-dark fa fa-external-link-alt"></i>
+                                                                    </a>
+                                                                @else
+                                                                    <span class="fs-4 text-warning me-3"
+                                                                        title="Subscription limit reached (5 drivers maximum for your plan)">
+                                                                        <i class="fa fa-exclamation-triangle"></i>
+                                                                    </span>
+                                                                    <span class="badge bg-warning text-dark">Limit Reached</span>
+                                                                @endif
+                                                            @else
+                                                                <span class="fs-4 text-dark me-3">&times;</span>
+                                                            @endif
                                                         @endif
-                                                    @else
-                                                        <span class="fs-4 text-dark me-3">&times;</span>
-                                                    @endif
-                                                @endif
-                                            </td> -->
+                                                    </td> -->
                                             <td>
                                                 <span
                                                     class="badge bg-{{ $apply['ap_status'] == 'Hired' ? 'success' : 'danger' }}">
@@ -147,6 +155,39 @@
                                     @endforeach
                                 </tbody>
                             </table>
+@foreach ($appliedListFullTime as $apply)
+<div class="modal fade" id="viewModal{{ $apply['id'] }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Contact Admin</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                <p class="text-muted mb-2">
+                    For further process, please contact admin
+                </p>
+                <p><b>Drivers Deck</b></p>
+
+                <h5 class="fw-bold text-dark">
+                    <i class="fa fa-phone me-2"></i>
+                     9600166472
+                </h5>
+
+                <a href="tel:+919876543210"
+                   class="btn btn-success btn-sm mt-3">
+                    <i class="fa fa-phone"></i> Call Admin
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+@endforeach
+
+
                         </div>
                     </div>
                 </div>

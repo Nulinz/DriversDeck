@@ -18,9 +18,11 @@
                                         <th>#</th>
                                         <th>Name</th>
                                         <th>Driver Type</th>
-                                        <th>Joined Date</th>
+                                        <!-- <th>Joined Date</th>
                                         <th>Contact Number</th>
-                                        <th>Job Location</th>
+                                        <th>Job Location</th> -->
+                                        <th>Register Date</th>
+                                        <th>License type</th>
                                         <th>Status</th>
                                         <th>Action</th>
                                     </tr>
