@@ -82,6 +82,7 @@ class ApprovalController extends Controller
 
     public function handleApproval($type, $id, $action)
     {
+
         if (in_array($type, ['acting', 'permanent'])) {
             $model = \App\Models\Driver::class;
         } else {
@@ -110,7 +111,6 @@ class ApprovalController extends Controller
         return redirect()->back()->with('success', $message);
     }
 
-
     public function handleApprovalWithReason(Request $request)
     {
         $request->validate([
@@ -135,7 +135,6 @@ class ApprovalController extends Controller
         } else {
             $record->status = 'pending';
         }
-
         $record->save();
 
         // Save reason
@@ -151,6 +150,7 @@ class ApprovalController extends Controller
         return redirect()
             ->route('admin.candidate.index')
             ->with('success', ucfirst($request->action) . ' successfully with reason');
+
     }
 
 
