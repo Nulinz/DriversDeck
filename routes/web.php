@@ -6,7 +6,7 @@ use App\Http\Controllers\CorprateController;
 use App\Http\Controllers\CustomerReport;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Organization\AuthController_org;
+use App\Http\Controllers\organization\AuthController_org;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\RequestController;
@@ -16,13 +16,21 @@ use App\Http\Controllers\VacancyController;
 use App\Http\Controllers\TripCanelController;
 use App\Http\Controllers\ChangeTypeController;
 use App\Http\Controllers\Api_owner;
-use App\Http\Controllers\Landing\LandingController;
-use App\Http\Controllers\Organization\VacancyController_org;
+use App\Http\Controllers\landing\LandingController;
+use App\Http\Controllers\organization\VacancyController_org;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CashfreepaymentController;
 
 
+
+Route::get('/admin/vacancy', [VacancyController::class, 'vacancy'])->name('admin.vacancy.vacancy_approvel');
+
+Route::post('/admin/vacancy/approval', [VacancyController::class, 'handleApproval'])
+    ->name('admin.vacancy.approval');
+
+// Route::post('/admin/vacancy/approval', [VacancyController::class, 'handleApproval'])
+//     ->name('admin.vacancy.approval');
 
 //for 
 Route::get('/payment', [CashfreepaymentController::class, 'createPayment'])->name('payment.create');
@@ -57,50 +65,50 @@ Route::middleware(['auth:web', 'cook.auth.corp'])->group(function () {
     Route::get('/admin/candidate_list', [CandidateController::class, 'candidate'])->name('admin.candidate.index');
     Route::get('/admin/candidate/profile/{id}', [CandidateController::class, 'profile'])->name('admin.candidate.profile');
     Route::post('/admin/corporate/status-toggle/{id}', [CandidateController::class, 'toggleStatus']);
-        Route::put('/admin/candidate/update-profile/{id}', [CandidateController::class, 'updateProfile'])->name('admin.candidate.update_profile');
+    Route::put('/admin/candidate/update-profile/{id}', [CandidateController::class, 'updateProfile'])->name('admin.candidate.update_profile');
 
     // Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard.index');
 // Add this route to your web.php file
-Route::post('/admin/candidate/active-status-toggle/{id}', [CandidateController::class, 'toggleActiveStatus'])->name('admin.candidate.active-status-toggle');
+    Route::post('/admin/candidate/active-status-toggle/{id}', [CandidateController::class, 'toggleActiveStatus'])->name('admin.candidate.active-status-toggle');
 
-// Your existing route
-Route::get('/admin/candidate_list', [CandidateController::class, 'candidate'])->name('admin.candidate.index');
-// Driver type change request routes
-Route::get('/admin/driver-change-requests', [CandidateController::class, 'showTypeChangeRequests'])
-    ->name('admin.driverChangeRequests');
+    // Your existing route
+    Route::get('/admin/candidate_list', [CandidateController::class, 'candidate'])->name('admin.candidate.index');
+    // Driver type change request routes
+    Route::get('/admin/driver-change-requests', [CandidateController::class, 'showTypeChangeRequests'])
+        ->name('admin.driverChangeRequests');
 
-Route::post('/admin/driver-change-requests/{requestId}', [CandidateController::class, 'approveDriverTypeChange'])
-    ->name('admin.approveDriverTypeChange');
-Route::get('/admin/candidate/export-data', [CandidateController::class, 'exportDriverData'])->name('admin.candidate.export.data');
+    Route::post('/admin/driver-change-requests/{requestId}', [CandidateController::class, 'approveDriverTypeChange'])
+        ->name('admin.approveDriverTypeChange');
+    Route::get('/admin/candidate/export-data', [CandidateController::class, 'exportDriverData'])->name('admin.candidate.export.data');
 
-// Optional: API routes for mobile app or AJAX requests
-Route::post('/api/driver/type-change-request', [CandidateController::class, 'createTypeChangeRequest'])
-    ->name('api.driver.typeChangeRequest');
-Route::get('/admin/corprate', [CorprateController::class, 'index'])->name('admin.corprate.index');
+    // Optional: API routes for mobile app or AJAX requests
+    Route::post('/api/driver/type-change-request', [CandidateController::class, 'createTypeChangeRequest'])
+        ->name('api.driver.typeChangeRequest');
+    Route::get('/admin/corprate', [CorprateController::class, 'index'])->name('admin.corprate.index');
 
-// Corporate status toggle route
-Route::post('/admin/corporates1/status-toggle/{id}', [CorprateController::class, 'toggleStatus1'])->name('admin.corporate.toggle-status');
+    // Corporate status toggle route
+    Route::post('/admin/corporates1/status-toggle/{id}', [CorprateController::class, 'toggleStatus1'])->name('admin.corporate.toggle-status');
 
-Route::get('/admin/corprate_create', [CorprateController::class, 'create'])->name('admin.corprate.corprate_create');
-Route::post('/admin/corprate_store', [CorprateController::class, 'store'])->name('admin.corporate.store');
-Route::post('/admin/get-locations-by-district', [CorprateController::class, 'get_locations_by_district'])->name('admin.get_locations_by_district');
+    Route::get('/admin/corprate_create', [CorprateController::class, 'create'])->name('admin.corprate.corprate_create');
+    Route::post('/admin/corprate_store', [CorprateController::class, 'store'])->name('admin.corporate.store');
+    Route::post('/admin/get-locations-by-district', [CorprateController::class, 'get_locations_by_district'])->name('admin.get_locations_by_district');
 
 
-Route::get('/api/driver/{driverId}/type-change-history', [CandidateController::class, 'getDriverTypeChangeHistory'])
-    ->name('api.driver.typeChangeHistory');
+    Route::get('/api/driver/{driverId}/type-change-history', [CandidateController::class, 'getDriverTypeChangeHistory'])
+        ->name('api.driver.typeChangeHistory');
     // corprate
     Route::get('/admin/corprate_list', [CorprateController::class, 'corprate'])->name('admin.corprate.corprate_list');
     // Add this route to your web.php file
-Route::post('/admin/corporate/active-status-toggle/{id}', [CorprateController::class, 'toggleActiveStatus'])->name('admin.corporate.active-status-toggle');
-Route::get('/admin/corporate/export-data', [CorprateController::class, 'exportCorporateData'])->name('admin.corporate.export.data');
+    Route::post('/admin/corporate/active-status-toggle/{id}', [CorprateController::class, 'toggleActiveStatus'])->name('admin.corporate.active-status-toggle');
+    Route::get('/admin/corporate/export-data', [CorprateController::class, 'exportCorporateData'])->name('admin.corporate.export.data');
 
-// Your existing route
+    // Your existing route
     Route::get('/admin/corprate_profile/{id}', [CorprateController::class, 'corprate_profile'])->name('admin.corprate.corprate_profile');
     Route::get('/admin/owner_profile/{id}', [CorprateController::class, 'owner_profile'])->name('admin.corprate.owner_profile');
     Route::post('/admin/corporate/status-toggle/{id}', [CorprateController::class, 'toggleStatus']);
-   Route::put('corprate/update-profile/{id}', [CorprateController::class, 'update_corporate_profile'])
+    Route::put('corprate/update-profile/{id}', [CorprateController::class, 'update_corporate_profile'])
         ->name('admin.corprate.update_profile');
-        Route::put('/admin/owner_profile/{id}', [CorprateController::class, 'update_owner_profile'])->name('admin.corprate.update_owner_profile');
+    Route::put('/admin/owner_profile/{id}', [CorprateController::class, 'update_owner_profile'])->name('admin.corprate.update_owner_profile');
 
     // cutomer report
     Route::get('/admin/customer_report', [CustomerReport::class, 'customer_report'])->name('admin.customer.customer_report');
@@ -108,17 +116,18 @@ Route::get('/admin/corporate/export-data', [CorprateController::class, 'exportCo
     Route::post('/admin/customer/approve', [CustomerReport::class, 'handleCustomerReportAction'])->name('admin.customer.approve');
     Route::post('/admin/customer/feedback', [CustomerReport::class, 'handleCustomerFeedbackAction'])->name('admin.customer.feedback');
     Route::get('/vacancy/create', [App\Http\Controllers\VacancyController::class, 'create'])->name('admin.vacancy.create');
-        Route::post('/vacancy/store', [App\Http\Controllers\VacancyController::class, 'store'])->name('admin.vacancy.store');
+    Route::post('/vacancy/store', [App\Http\Controllers\VacancyController::class, 'store'])->name('admin.vacancy.store');
     Route::get('vacancy/{vacancy}/applied-details', [App\Http\Controllers\VacancyController::class, 'appliedDetails'])->name('admin.vacancy.applied-details');
 
     Route::get('vacancy/{vacancy}/applied-users', [App\Http\Controllers\VacancyController::class, 'getAppliedUsers'])->name('admin.vacancy.applied-users');
-      Route::put('admin/vacancy/{id}/update-status', [App\Http\Controllers\VacancyController::class, 'updateStatus'])->name('admin.vacancy.update-status');
-Route::put('admin/vacancys/{id}/update-status', 
-    [App\Http\Controllers\VacancyController::class, 'update_Status']
-)->name('admin.vacancys.update-status');
-Route::post('admin/handle-approval-reason', [ApprovalController::class, 'handleApprovalWithReason'])
-    ->name('admin.handle.approval.reason');
-Route::post('/admin/subscription-approval/{type}/{id}/{action}', [ApprovalController::class, 'handleSubscriptionApproval'])->name('admin.handle.subscription');
+    Route::put('admin/vacancy/{id}/update-status', [App\Http\Controllers\VacancyController::class, 'updateStatus'])->name('admin.vacancy.update-status');
+    Route::put(
+        'admin/vacancys/{id}/update-status',
+        [App\Http\Controllers\VacancyController::class, 'update_Status']
+    )->name('admin.vacancys.update-status');
+    Route::post('admin/handle-approval-reason', [ApprovalController::class, 'handleApprovalWithReason'])
+        ->name('admin.handle.approval.reason');
+    Route::post('/admin/subscription-approval/{type}/{id}/{action}', [ApprovalController::class, 'handleSubscriptionApproval'])->name('admin.handle.subscription');
 
     // approval list all regirstered
     Route::get('/admin/approval_list', [ApprovalController::class, 'approval'])->name('admin.approval.approval_list');
@@ -134,8 +143,8 @@ Route::post('/admin/subscription-approval/{type}/{id}/{action}', [ApprovalContro
     Route::post('/admin/location/store', [SettingsController::class, 'storeLocation'])->name('admin.settings.location.store');
     Route::post('/admin/user/status-toggle/{id}', [SettingsController::class, 'toggleStatus']);
 
-Route::get('/admin/settings/location/{location}/deactivate', [SettingsController::class, 'deactivateLocation'])->name('location.deactivate');
-Route::get('/admin/settings/location/{location}/activate', [SettingsController::class, 'activateLocation'])->name('location.activate');
+    Route::get('/admin/settings/location/{location}/deactivate', [SettingsController::class, 'deactivateLocation'])->name('location.deactivate');
+    Route::get('/admin/settings/location/{location}/activate', [SettingsController::class, 'activateLocation'])->name('location.activate');
 
 
     // request
@@ -144,15 +153,14 @@ Route::get('/admin/settings/location/{location}/activate', [SettingsController::
     Route::get('/admin/reports', [ReportsController::class, 'reports'])->name('admin.reports.report');
     // trip
     Route::get('/admin/trip', [TripController::class, 'trip_list'])->name('admin.trip.trip_list');
-    Route::get('/admin/trip_profile', [TripController::class, 'trip_profile'])->name('admin.trip.trip_profile');
+    Route::get('/admin/trip_profile/{id}', [TripController::class, 'trip_profile'])->name('admin.trip.trip_profile');
     // vacancy
-    Route::get('/admin/vacancy', [VacancyController::class, 'vacancy'])->name('admin.vacancy.vacancy_approvel');
 
     // new Vacancy Routes
     // Route::get('/admin/vacancy', [VacancyController::class, 'vacancy'])->name('admin.vacancy.vacancy_approvel');
     // Route::post('/admin/vacancy/approval', [VacancyController::class, 'handleApproval'])->name('admin.vacancy.approval');
 
- Route::get('/location/activate/{location}', [LocationController::class, 'activateLocation'])
+    Route::get('/location/activate/{location}', [LocationController::class, 'activateLocation'])
         ->name('admin.location.activate');
     // location
     Route::get('/admin.location', [LocationController::class, 'location'])->name('admin.location.location');
@@ -185,10 +193,16 @@ Route::get('/admin/trip', [TripController::class, 'trip_list'])->name('admin.tri
 
 Route::get('/admin/trip_profile/{id}', [TripController::class, 'trip_profile'])->name('admin.trip.trip_profile');
 // vacancy
-Route::get('/admin/vacancy', [VacancyController::class, 'vacancy'])->name('admin.vacancy.vacancy_approvel');
-// Correct POST route
-Route::post('/admin/vacancy/approval', [VacancyController::class, 'handleApproval'])->name('admin.vacancy.approval');
-// In routes/web.php
+Route::get('/admin/vacancy', [VacancyController::class, 'vacancy'])
+    ->name('admin.vacancy.vacancy_approvel');
+
+
+
+// Route::get('/admin/vacancy/approval', function () {
+//     return 'GET NOT ALLOWED';
+// });
+
+
 // GET route for approve/reject via link
 // Route::get('/admin/vacancy/approval/{type}/{id}/{action}', [VacancyController::class, 'handleApprovalReq'])
 //     ->name('admin.vacancy.action');
@@ -201,7 +215,7 @@ Route::get('/admin.location', [LocationController::class, 'location'])->name('ad
 Route::get('/admin/change_type', [ChangeTypeController::class, 'changetype'])->name('admin.change_type.change_type');
 
 //org Middleware....
-Route::get('/organization/login', [App\Http\Controllers\Organization\AuthController_org::class, 'login'])->name('auth.login.org');
+Route::get('/organization/login', [App\Http\Controllers\organization\AuthController_org::class, 'login'])->name('auth.login.org');
 
 
 Route::get('/subscription/payment-details/{plan}', [AuthController_org::class, 'payment_details'])->name('auth.payment_details');
@@ -218,7 +232,7 @@ Route::get('/organization/otp', [AuthController_org::class, 'otp'])->name('auth.
 Route::post('/organization/verify-otp', [AuthController_org::class, 'verifyOtp'])->name('auth.verify_otp');
 
 
-Route::post('organization/login_check', [App\Http\Controllers\Organization\AuthController_org::class, 'login_check'])->name('auth.login_check');
+Route::post('organization/login_check', [App\Http\Controllers\organization\AuthController_org::class, 'login_check'])->name('auth.login_check');
 
 
 
@@ -228,23 +242,23 @@ Route::post('organization/login_check', [App\Http\Controllers\Organization\AuthC
 // Route::post('/organization/verify-otp', [AuthController_org::class, 'verifyOtp'])->name('auth.verify_otp');
 
 
-// Route::post('organization/login_check', [App\Http\Controllers\Organization\AuthController_org::class, 'login_check'])->name('auth.login_check');
+// Route::post('organization/login_check', [App\Http\Controllers\organization\AuthController_org::class, 'login_check'])->name('auth.login_check');
 
 // forgot password
-Route::get('organization/forgot_pass', [App\Http\Controllers\Organization\AuthController_org::class, 'forgotpass'])->name('auth.forgot_pass');
+Route::get('organization/forgot_pass', [App\Http\Controllers\organization\AuthController_org::class, 'forgotpass'])->name('auth.forgot_pass');
 // get opt
-Route::get('organization/get_opt', [App\Http\Controllers\Organization\AuthController_org::class, 'otp'])->name('auth.otp');
+Route::get('organization/get_opt', [App\Http\Controllers\organization\AuthController_org::class, 'otp'])->name('auth.otp');
 // change password
-Route::get('organization/change_pass', [App\Http\Controllers\Organization\AuthController_org::class, 'changepass'])->name('auth.change_pass');
+Route::get('organization/change_pass', [App\Http\Controllers\organization\AuthController_org::class, 'changepass'])->name('auth.change_pass');
 
 // register details
 
 // trip cancel from owner...
 
-Route::post('/trip-cancel', [App\Http\Controllers\Api_owner::class, 'trip_cancel'])->name('act_trip_cancel_owner');
+Route::post('/trip-cancel', [Api_owner::class, 'trip_cancel'])->name('act_trip_cancel_owner');
 
 Route::get('/organization/get-locations/{district}', [AuthController_org::class, 'get_locations_by_district'])
-     ->name('organization.getLocations');
+    ->name('organization.getLocations');
 Route::get('organization/register_details', [AuthController_org::class, 'register_basic'])->name('auth.register_details');
 Route::post('organization/register_details_store', [AuthController_org::class, 'register_basic_store'])->name('auth.register_details_store');
 
@@ -264,10 +278,10 @@ Route::get('organization/register_subscription_store', [AuthController_org::clas
 // New payment routes
 Route::post('organization/initiate_payment', [AuthController_org::class, 'initiate_payment'])->name('auth.initiate_payment');
 Route::get('organization/payment_callback', [AuthController_org::class, 'payment_callback'])->name('auth.payment_callback');// organization group routes
-Route::prefix('organization')->name('organization.')->namespace('App\Http\Controllers\Organization')->middleware(['auth:corporate', 'cook.auth.corp'])->group(function () {
+Route::prefix('organization')->name('organization.')->namespace('App\Http\Controllers\organization')->middleware(['auth:corporate', 'cook.auth.corp'])->group(function () {
     // auth
     // Add this near your other auth routes
-    // Route::get('/login', [App\Http\Controllers\Organization\AuthController_org::class, 'login'])->name('login');
+    // Route::get('/login', [App\Http\Controllers\organization\AuthController_org::class, 'login'])->name('login');
 
     // Route::get('/login', 'AuthController_org@login')->name('auth.login');
     Route::get('/logout', 'AuthController_org@logout')->name('auth.logout');
@@ -342,7 +356,7 @@ Route::prefix('organization')->name('organization.')->namespace('App\Http\Contro
 // landing routes
 Route::get('/', [LandingController::class, 'landing'])->name('landing.index');
 
-Route::name('landing.')->namespace('App\Http\Controllers\Landing')->group(function () {
+Route::name('landing.')->namespace('App\Http\Controllers\landing')->group(function () {
 
     // about
     Route::get('/about', 'LandingController@about')->name('landing.about');
@@ -363,7 +377,7 @@ Route::get('/refferral', function (Request $request) {
     $id = $request->query('id'); // e.g. DDPER001
 
     // Build Google Play Store URL
-    $playUrl = "https://play.google.com/store/apps/details?id=com.driversdeck.app&referrer=id%".$id;
+    $playUrl = "https://play.google.com/store/apps/details?id=com.driversdeck.app&referrer=id%" . $id;
 
     return redirect()->away($playUrl);
 });

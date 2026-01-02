@@ -30,6 +30,8 @@
                                     </tr>
                                 </thead>
                                 <tbody class="">
+
+
                                     @forelse($vacancies as $index => $vacancy)
                                         <tr>
                                             <td>{{ $index + 1 }}</td>
@@ -46,36 +48,33 @@
                                                 <a class="btn btn-sm btn-secondary" href="">Approve</a>
                                                 <a class="btn btn-sm btn-secondary ms-lg-2" href="">Reject</a>
                                             </td> --}}
+
 <td>
     {{-- Approve --}}
-    <form action="{{ route('admin.vacancy.approval') }}" method="POST" style="display:inline-block;">
-        @csrf
+    <form action="{{ route('admin.vacancy.approval') }}" method="POST" style="display:inline-block";>
+    @csrf
+    <input type="hidden" name="type" value="{{ $vacancy->job_category }}">
+    <input type="hidden" name="id" value="{{ $vacancy->job_id }}">
+    <input type="hidden" name="action" value="approve">
+    <button type="submit" class="btn btn-sm btn-success"
+            onclick="return confirm('Are you sure you want to approve this vacancy?');">
+            Approve      </button>
+</form>
 
-        <input type="hidden" name="type" value="{{ $vacancy->job_category }}"> {{-- acting / permanent --}}
-        <input type="hidden" name="id" value="{{ $vacancy->job_id }}">
-        <input type="hidden" name="action" value="approve">
-
-        <button type="submit" class="btn btn-sm btn-success"
-            onclick="return confirm('Are you sure you want to approve this vacancy?')">
-            Approve
-        </button>
-    </form>
 
     {{-- Reject --}}
-    <form action="{{ route('admin.vacancy.approval') }}" method="POST"
-          style="display:inline-block; margin-left:10px;">
+    <form action="{{ route('admin.vacancy.approval') }}" method="POST" style="display:inline-block; margin-left:10px;">
         @csrf
-
         <input type="hidden" name="type" value="{{ $vacancy->job_category }}">
         <input type="hidden" name="id" value="{{ $vacancy->job_id }}">
         <input type="hidden" name="action" value="reject">
-
         <button type="submit" class="btn btn-sm btn-danger"
-            onclick="return confirm('Are you sure you want to reject this vacancy?')">
+            onclick="return confirm('Are you sure you want to reject this vacancy?');">
             Reject
         </button>
     </form>
 </td>
+
 
 
                                         @empty

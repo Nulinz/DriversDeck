@@ -3,119 +3,166 @@
 namespace App\Jobs;
 
 use App\Models\Corporate;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use App\Services\Fcm;
 use App\Models\Notify;
 use App\Models\Trip;
-use Illuminate\Support\Facades\Log;
-
-
 use App\Models\Driver;
+use App\Models\PermanentJobs;
+use App\Services\FcmService;
+use Illuminate\Bus\Queueable;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class Trip_notify implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * Create a new job instance.
-     */
-    public  $drivers;
-    public  $type; // 'posted', 'applied', etc.
-    public  $trip; // 'posted', 'applied', etc.
-    public  $fcm;
-    public  $c_by;
+    public $drivers; 
+    public $type;    
+    public $trip;    
+    public $c_by;    
 
-    public function __construct($drivers, $trip, $type, $c_by = null)
+    public function __construct(array $drivers, int $trip, string $type, ?int $c_by = null)
     {
         $this->drivers = $drivers;
-        $this->type = $type;
         $this->trip = $trip;
+        $this->type = $type;
         $this->c_by = $c_by;
-        // $this->fcm = new Fcm_obj();
-
-        // dd($this->drivers, $type);
     }
 
-    /**
-     * Execute the job.
-     */
-    public function handle()
+    public function handle(FcmService $fcmService)
     {
+        // Fetch drivers with valid tokens in one query
+        $drivers = Driver::whereIn('id', $this->drivers)
+            ->whereNotNull('token')
+            ->where('token', '!=', '')
+            ->get(['id', 'type', 'token']); // Only fetch needed columns
 
-        // $fcm = new Fcm_obj(); // ✅ Safe to do here
-        $drivers_loop = Driver::whereIn('id', $this->drivers)->get(); // ✅ only if $this->drivers is a flat array
-        Log::info('Driver IDs in job:', $this->drivers);
-
-        foreach ($drivers_loop as $driver) {
-            switch ($this->type) {
-                case 'trip_posted':
-                    // Log::info("message: Trip posted notification for driver ID: " . $driver->id . "Trip-ID: " . $this->trip);
-                    $this->sendTripPosted($driver);
-                    break;
-
-                case 'job_posted':
-                    // Log::info("message: Trip applied notification for driver ID: " . $driver->id);
-                    $this->sendjobPosted($driver);
-                    break;
-            }
-        }
-    }
-
-    protected function sendTripPosted($driver)
-    {
-        $fcm = new Fcm(); // ✅ Safe to do here
-
-        $trip = Trip::find($this->trip);
-
-        if (!$trip) {
-            Log::warning("Trip not found for ID {$this->trip}");
+        if ($drivers->isEmpty()) {
+            Log::info('No drivers with valid tokens found for notification', [
+                'type' => $this->type,
+                'trip_id' => $this->trip
+            ]);
             return;
         }
 
-        $title = "New Trip Posted ";
-        $body = "A new trip has been posted near you. Trip ID: {$trip->id}";
-        Notify::create([
-            'type' => $driver->type,
-            'f_id' => $driver->id,
-            'prime_table' => $trip->id,
-            'cat' => 'trip_posted',
-            'title' => $title,
-            'body' => $body,
-            'status' => 'active',
-            'c_by' =>  $this->c_by, // Assuming you want to log who created this notification
-        ]);
+        // Batch prepare notification data to reduce queries
+        $notificationsData = [];
+        $fcmPayloads = [];
 
-        $fcm->send_notify($driver->token, $title, $body);
+        foreach ($drivers as $driver) {
+            $result = match ($this->type) {
+                'trip_posted' => $this->sendTripPosted($driver),
+                'job_posted'  => $this->sendJobPosted($driver),
+                default => null,
+            };
+
+            if ($result) {
+                $notificationsData[] = $result['notification'];
+                $fcmPayloads[] = [
+                    'token' => $driver->token,
+                    'title' => $result['title'],
+                    'body' => $result['body'],
+                    'type' => $this->type,
+                    'driver_id' => $driver->id,
+                ];
+            }
+        }
+
+        // Batch insert notifications
+        if (!empty($notificationsData)) {
+            Notify::insert($notificationsData);
+        }
+
+        // Send FCM notifications
+        foreach ($fcmPayloads as $payload) {
+            $fcmService->send(
+                $payload['token'],
+                $payload['title'],
+                $payload['body'],
+                $payload['type'],
+                $payload['driver_id']
+            );
+        }
+
+        Log::info('Notifications processed', [
+            'type' => $this->type,
+            'trip_id' => $this->trip,
+            'drivers_notified' => count($fcmPayloads)
+        ]);
     }
 
-    protected function sendjobPosted($driver)
+    protected function sendTripPosted(Driver $driver): ?array
     {
-        $fcm = new Fcm(); // ✅ Safe to do here
+        static $trip = null;
 
-        $per_drivers = Corporate::find($this->c_by);
+        // Cache trip object to avoid multiple DB queries
+        if ($trip === null) {
+            $trip = Trip::find($this->trip);
+        }
 
-        Log::info("trip new ID --" . $this->trip);
+        if (!$trip) {
+            Log::warning('Trip not found for notification', ['trip_id' => $this->trip]);
+            return null;
+        }
 
-        $title = "New Job Posted ";
-        $body = "A Job has been posted near you. By: " . $per_drivers->name;
+        $title = "New Trip Posted";
+        $body  = "A new trip has been posted near you. Trip ID: {$trip->id}";
 
-        // Log::info("Sending notification to Job ID: " . $per_drivers->name);
-
-        Notify::create([
-            'type' => $driver->type,
-            'f_id' => $driver->id,
-            'prime_table' => $this->trip,
-            'cat' => 'job_posted',
+        return [
             'title' => $title,
             'body' => $body,
-            'status' => 'active',
-            'c_by' =>  $this->c_by, // Assuming you want to log who created this notification
-        ]);
+            'notification' => [
+                'type' => $driver->type,
+                'f_id' => $driver->id,
+                'prime_table' => $trip->id,
+                'cat' => 'trip_posted',
+                'title' => $title,
+                'body' => $body,
+                'status' => 'active',
+                'c_by' => $this->c_by,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ];
+    }
 
-        $fcm->send_notify($driver->token, $title, $body);
+    protected function sendJobPosted(Driver $driver): ?array
+    {
+        static $corporate = null;
+
+        // Cache corporate object to avoid multiple DB queries
+        if ($corporate === null) {
+            $corporate = Corporate::find($this->c_by);
+        }
+
+        if (!$corporate) {
+            Log::warning('Corporate not found for notification', ['corporate_id' => $this->c_by]);
+            return null;
+        }
+
+        $title = "New Job Posted";
+        // $body  = "A job has been posted near you. By: {$corporate->name}";
+        $body  = "A job has been posted near you.";
+
+        return [
+            'title' => $title,
+            'body' => $body,
+            'notification' => [
+                'type' => $driver->type,
+                'f_id' => $driver->id,
+                'prime_table' => $this->trip,
+                'cat' => 'job_posted',
+                'title' => $title,
+                'body' => $body,
+                'status' => 'active',
+                'c_by' => $this->c_by,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        ];
     }
 }

@@ -161,62 +161,103 @@
                             </div>
 
                             <!-- Pending Section -->
-                            <div id="pending-section" class="driver-section" style="display: none;">
-                                <h5 class="text-muted mb-3">Pending List</h5>
-                                <table id="pending-table" class="table table-striped" style="width:100%">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Driver Name</th>
-                                            <th>Registration Date</th>
-                                            <th>Contact Number</th>
-                                            <th>Location</th>
-                                            <th>Registration Type</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse ($pendingDrivers as $candidate)
-                                                                            <tr>
-                                                                                <td>{{ $loop->iteration }}</td>
-                                                                                <td>{{ $candidate->name }}</td>
-                                                                                <td>{{ \Carbon\Carbon::parse($candidate->created_at)->format('d-m-Y') }}</td>
-                                                                                <td>{{ $candidate->phone }}</td>
-                                                                                <td>{{ $candidate->loc }}</td>
-                                                                                <td>{{ ucfirst($candidate->type) }}</td>
-                                                                                <td>
-    <a href="{{ route('admin.candidate.profile', ['id' => $candidate->id]) }}">
-        <i class="fs-5 text-dark fa fa-external-link-alt"></i>
-    </a>
+<!-- Pending Section -->
+<div id="pending-section" class="driver-section" style="display: none;">
+    <h5 class="text-muted mb-3">Pending List</h5>
 
-    {{-- Approve --}}
-    <form action="{{ route('admin.handle.approval', [
-        'type' => $candidate->type,
-        'id' => $candidate->id,
-        'action' => 'approve'
-    ]) }}" method="POST" style="display:inline;">
-        @csrf
-        <button class="btn btn-success btn-sm p-1"
-                onclick="return confirm('Approve this driver?')">
-            <i class="fa fa-check fs-6"></i>
-        </button>
-    </form>
+    <table id="pending-table" class="table table-striped" style="width:100%">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Driver Name</th>
+                <th>Registration Date</th>
+                <th>Contact Number</th>
+                <th>Location</th>
+                <th>Registration Type</th>
+                <th>Action</th>
+            </tr>
+        </thead>
 
-    {{-- Reject (ONLY modal trigger) --}}
-    <button type="button"
-            class="btn btn-danger btn-sm p-1"
-            data-bs-toggle="modal"
-            data-bs-target="#rejectModal{{ $candidate->id }}">
-        <i class="fa fa-times fs-6"></i>
-    </button>
-</td>
-                                                                            </tr>
-                                        @empty
-                                           
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+        <tbody>
+            @forelse ($pendingDrivers as $candidate)
+                <tr>
+                    <td>{{ $loop->iteration }}</td>
+                    <td>{{ $candidate->name }}</td>
+                    <td>{{ \Carbon\Carbon::parse($candidate->created_at)->format('d-m-Y') }}</td>
+                    <td>{{ $candidate->phone }}</td>
+                    <td>{{ $candidate->loc }}</td>
+                    <td>{{ ucfirst($candidate->type) }}</td>
+                    <td>
+                        {{-- View --}}
+                        <a href="{{ route('admin.candidate.profile', ['id' => $candidate->id]) }}">
+                            <i class="fs-5 text-dark fa fa-external-link-alt"></i>
+                        </a>
+
+                        {{-- Approve --}}
+                        <form action="{{ route('admin.handle.approval', [
+                            'type' => $candidate->type,
+                            'id' => $candidate->id,
+                            'action' => 'approve'
+                        ]) }}" method="POST" style="display:inline;">
+                            @csrf
+                            <button class="btn btn-success btn-sm p-1"
+                                    onclick="return confirm('Approve this driver?')">
+                                <i class="fa fa-check fs-6"></i>
+                            </button>
+                        </form>
+
+                        {{-- Reject --}}
+                        <button type="button"
+                                class="btn btn-danger btn-sm p-1"
+                                data-bs-toggle="modal"
+                                data-bs-target="#rejectModal{{ $candidate->id }}">
+                            <i class="fa fa-times fs-6"></i>
+                        </button>
+                    </td>
+                </tr>
+
+                {{-- ✅ Reject Modal (INSIDE LOOP) --}}
+                <div class="modal fade" id="rejectModal{{ $candidate->id }}" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered modal-sm">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ route('admin.handle.approval.reason') }}">
+                                @csrf
+
+                                <input type="hidden" name="type" value="{{ $candidate->type }}">
+                                <input type="hidden" name="id" value="{{ $candidate->id }}">
+                                <input type="hidden" name="action" value="reject">
+
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Reject Driver</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                <div class="modal-body">
+                                    <textarea name="reason"
+                                              class="form-control"
+                                              rows="4"
+                                              required
+                                              minlength="10"
+                                              placeholder="Enter rejection reason (min 10 characters)"></textarea>
+                                </div>
+
+                                <div class="modal-footer">
+                                    <button type="submit" class="btn btn-danger">
+                                        Reject
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            @empty
+               
+            @endforelse
+        </tbody>
+    </table>
+</div>
+
                         </div>
                     </div>
                 </div>

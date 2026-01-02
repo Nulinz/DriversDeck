@@ -19,149 +19,149 @@ use App\Models\VacancyApplied;
 
 class Api_permanent extends Controller
 {
-public function vacancyDetails(Request $request)
-{
-    // ✅ Validate request
-    $request->validate([
-        'vacancy_id' => 'required|integer|exists:vacancy,id',
-    ]);
+    public function vacancyDetails(Request $request)
+    {
+        // ✅ Validate request
+        $request->validate([
+            'vacancy_id' => 'required|integer|exists:vacancy,id',
+        ]);
 
-    // ✅ Get the authenticated user
-    $user = auth()->user();
-    if (!$user) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Unauthorized',
-        ], 401);
-    }
+        // ✅ Get the authenticated user
+        $user = auth()->user();
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
 
-    $userId = $user->id;
-    $vacancyId = $request->vacancy_id;
+        $userId = $user->id;
+        $vacancyId = $request->vacancy_id;
 
-    // ✅ Get vacancy
-    $vacancy = Vacancy::where('id', $vacancyId)
-        ->where('status', 'active')
-        ->first();
+        // ✅ Get vacancy
+        $vacancy = Vacancy::where('id', $vacancyId)
+            ->where('status', 'active')
+            ->first();
 
-    if (!$vacancy) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Vacancy not found or inactive.'
-        ], 404);
-    }
+        if (!$vacancy) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Vacancy not found or inactive.'
+            ], 404);
+        }
 
-    // ✅ Check if user has applied & fetch status if applied
-    $appliedRecord = \App\Models\VacancyApplied::where('user_id', $userId)
-        ->where('vacancy_id', $vacancy->id)
-        ->first();
-
-    $vacancy->applied = (bool) $appliedRecord;
-    $vacancy->application_status = $appliedRecord ? $appliedRecord->status : null;
-
-    // ✅ Prepare response data
-    $responseData = $vacancy->toArray();
-
-    if ($appliedRecord && $appliedRecord->status === 'Rejected') {
-        $responseData['rejection_reason'] = $appliedRecord->rejection_reason;
-    }
-
-    return response()->json([
-        'success' => true,
-        'data'    => $responseData,
-    ], 200);
-}
-    
-    public function latest(Request $request)
-{
-    // ✅ Get the authenticated user from Bearer token
-    $user = auth()->user();
-
-    if (!$user) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Unauthorized',
-        ], 401);
-    }
-
-    $userId = $user->id; // driver id from token
-
-    $vacancies = Vacancy::where('status', 'active')->get();
-
-    if ($vacancies->isEmpty()) {
-        return response()->json([
-            'success' => false,
-            'message' => 'No active vacancy found.'
-        ], 404);
-    }
-
-    // Attach "applied" status for each vacancy
-    $vacancies = $vacancies->map(function ($vacancy) use ($userId) {
-        $vacancy->applied = \App\Models\VacancyApplied::where('user_id', $userId)
+        // ✅ Check if user has applied & fetch status if applied
+        $appliedRecord = \App\Models\VacancyApplied::where('user_id', $userId)
             ->where('vacancy_id', $vacancy->id)
-            ->exists();
-        return $vacancy;
-    });
+            ->first();
 
-    return response()->json([
-        'success' => true,
-        'data'    => $vacancies,
-    ], 200);
-}
-public function apply(Request $request)
-{
-    // ✅ Get authenticated driver from Bearer token
-    $user = auth()->user();
+        $vacancy->applied = (bool) $appliedRecord;
+        $vacancy->application_status = $appliedRecord ? $appliedRecord->status : null;
 
-    if (!$user) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Unauthorized',
-        ], 401);
-    }
+        // ✅ Prepare response data
+        $responseData = $vacancy->toArray();
 
-    // Only vacancy_id is required from request, user_id comes from token
-    $validated = $request->validate([
-        'vacancy_id' => 'required|exists:vacancy,id',
-    ]);
+        if ($appliedRecord && $appliedRecord->status === 'Rejected') {
+            $responseData['rejection_reason'] = $appliedRecord->rejection_reason;
+        }
 
-    $userId = $user->id;  // driver id from token
-
-    // ✅ Check if already hired in SubApplied
-    $alreadyHired = \App\Models\SubApplied::where('d_id', $userId)
-        ->where('status', 'Hired')
-        ->exists();
-
-    if ($alreadyHired) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Already Hired',
-        ], 200);
-    }
-
-    // ✅ prevent duplicate applications
-    $exists = VacancyApplied::where('user_id', $userId)
-        ->where('vacancy_id', $validated['vacancy_id'])
-        ->first();
-
-    if ($exists) {
         return response()->json([
             'success' => true,
-            'message' => 'You have already applied for this vacancy.'
+            'data' => $responseData,
         ], 200);
     }
 
-    // ✅ Create application with token-based user_id
-    $applied = VacancyApplied::create([
-        'user_id'    => $userId,
-        'vacancy_id' => $validated['vacancy_id'],
-    ]);
+    public function latest(Request $request)
+    {
+        // ✅ Get the authenticated user from Bearer token
+        $user = auth()->user();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Applied to vacancy successfully!',
-        'data'    => $applied
-    ], 200);
-}
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        $userId = $user->id; // driver id from token
+
+        $vacancies = Vacancy::where('status', 'active')->get();
+
+        if ($vacancies->isEmpty()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No active vacancy found.'
+            ], 404);
+        }
+
+        // Attach "applied" status for each vacancy
+        $vacancies = $vacancies->map(function ($vacancy) use ($userId) {
+            $vacancy->applied = \App\Models\VacancyApplied::where('user_id', $userId)
+                ->where('vacancy_id', $vacancy->id)
+                ->exists();
+            return $vacancy;
+        });
+
+        return response()->json([
+            'success' => true,
+            'data' => $vacancies,
+        ], 200);
+    }
+    public function apply(Request $request)
+    {
+        // ✅ Get authenticated driver from Bearer token
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized',
+            ], 401);
+        }
+
+        // Only vacancy_id is required from request, user_id comes from token
+        $validated = $request->validate([
+            'vacancy_id' => 'required|exists:vacancy,id',
+        ]);
+
+        $userId = $user->id;  // driver id from token
+
+        // ✅ Check if already hired in SubApplied
+        $alreadyHired = \App\Models\SubApplied::where('d_id', $userId)
+            ->where('status', 'Hired')
+            ->exists();
+
+        if ($alreadyHired) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Already Hired',
+            ], 200);
+        }
+
+        // ✅ prevent duplicate applications
+        $exists = VacancyApplied::where('user_id', $userId)
+            ->where('vacancy_id', $validated['vacancy_id'])
+            ->first();
+
+        if ($exists) {
+            return response()->json([
+                'success' => true,
+                'message' => 'You have already applied for this vacancy.'
+            ], 200);
+        }
+
+        // ✅ Create application with token-based user_id
+        $applied = VacancyApplied::create([
+            'user_id' => $userId,
+            'vacancy_id' => $validated['vacancy_id'],
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Applied to vacancy successfully!',
+            'data' => $applied
+        ], 200);
+    }
 
     public function job()
     {
@@ -321,81 +321,170 @@ public function apply(Request $request)
     //     ]);
     // }
 
-public function permanent_dashboard(Request $req)
-{
-    $user = auth('sanctum')->user();
-    $page = $req->page;
+    // public function permanent_dashboard(Request $req)
+// {
+//     $user = auth('sanctum')->user();
+//     $page = $req->page;
 
-    $threeDaysAgo = Carbon::now()->subDays(3)->toDateString();
+    //     $threeDaysAgo = Carbon::now()->subDays(3)->toDateString();
 
-    $jobQuery = DB::table('permanent_jobs')
-        ->where('status', 'approve');
+    //     $jobQuery = DB::table('permanent_jobs')
+//         ->where('status', 'approved');
 
-    // Only filter by last 3 days if page = 'dashboard'
-    if ($page === 'dashboard') {
-        $jobQuery->whereDate('created_at', '>=', $threeDaysAgo);
+    //     // Only filter by last 3 days if page = 'dashboard'
+//     if ($page === 'dashboard') {
+//         $jobQuery->whereDate('created_at', '>=', $threeDaysAgo);
+//     }
+
+    //     $jobs = $jobQuery->orderBy('created_at', 'desc')
+//         ->select('id', 'veh_type', 'join_date', 'min_exp', 'max_exp', 'job_location', 'min_salary', 'max_salary', 'created_at', 'c_by')
+//         ->get()
+//         ->map(function ($job) {
+//             $job->c_on = Carbon::parse($job->created_at)->format('Y-m-d H:i:s');
+
+    //             $job->saved = DB::table('saved_jobs')
+//                 ->where('type', 'permanent')
+//                 ->where('trip_id', $job->id)
+//                 ->where('status', 'saved')
+//                 ->where('d_id', auth('sanctum')->user()->id)
+//                 ->exists() ?? false;
+
+    //             $job->applied = DB::table('sub_applied')
+//                 ->where('p_id', $job->id)
+//                 ->where('d_id', auth('sanctum')->user()->id)
+//                 ->where('status', 'Applied')
+//                 ->exists();
+
+    //             return $job;
+//         })
+//         ->reject(function ($job) {
+//             return $job->applied;
+//         })
+//         ->values();
+
+    //     // Get profile completion data
+//     $completion = $this->completion();
+
+    //     // Handle driver status and possible rejection/pending reason
+//     $driverStatus = $user->status;
+//     $reason = null;
+
+    //     if (in_array($driverStatus, ['rejected', 'pending'])) {
+//         // Normalize status to match DB values
+//         $action = $driverStatus === 'rejected' ? 'reject' : 'pending';
+
+    //         $latestReason = \App\Models\ApprovalReason::where('user_id', $user->id)
+//             ->where('user_type', $user->type)
+//             ->where('action', $action)
+//             ->latest()
+//             ->first();
+
+    //         $reason = $latestReason ? $latestReason->reason : null;
+//     }
+
+    //     $d_status = [
+//         'd_status' => $driverStatus,
+//         'number'   => '123456789',
+//         'reason'   => $reason,
+//     ];
+
+    //     return response()->json([
+//         'status'      => true,
+//         'message'     => 'Nearby locations Jobs found',
+//         'data'        => $jobs,
+//         'completion'  => $completion->completion_percentage ?? 0,
+//         'd_status'    => $d_status,
+//     ]);
+// }
+
+
+    public function permanent_dashboard(Request $req)
+    {
+        $user = auth('sanctum')->user();
+        $page = $req->page;
+
+        $threeDaysAgo = Carbon::now()->subDays(3)->toDateString();
+
+        $jobQuery = DB::table('permanent_jobs')
+            ->where('status', 'approved'); // ✅ FIXED
+
+        // Show only recent jobs on dashboard
+        if ($page === 'dashboard') {
+            $jobQuery->whereDate('created_at', '>=', $threeDaysAgo);
+        }
+
+        $jobs = $jobQuery
+            ->orderBy('created_at', 'desc')
+            ->select(
+                'id',
+                'veh_type',
+                'join_date',
+                'min_exp',
+                'max_exp',
+                'job_location',
+                'min_salary',
+                'max_salary',
+                'created_at',
+                'c_by'
+            )
+            ->get()
+            ->map(function ($job) use ($user) {
+
+                $job->c_on = Carbon::parse($job->created_at)->format('Y-m-d H:i:s');
+
+                // Saved job
+                $job->saved = DB::table('saved_jobs')
+                    ->where('type', 'permanent')
+                    ->where('trip_id', $job->id)
+                    ->where('status', 'saved')
+                    ->where('d_id', $user->id)
+                    ->exists();
+
+                // Applied job
+                $job->applied = DB::table('sub_applied')
+                    ->where('p_id', $job->id)
+                    ->where('d_id', $user->id)
+                    ->where('status', 'Applied')
+                    ->exists();
+
+                return $job;
+            })
+            // Hide already applied jobs
+            ->reject(fn($job) => $job->applied)
+            ->values();
+
+        // Profile completion
+        $completion = $this->completion();
+
+        // Driver status
+        $driverStatus = $user->status;
+        $reason = null;
+
+        if (in_array($driverStatus, ['rejected', 'pending'])) {
+            $action = $driverStatus === 'rejected' ? 'reject' : 'pending';
+
+            $latestReason = \App\Models\ApprovalReason::where('user_id', $user->id)
+                ->where('user_type', $user->type)
+                ->where('action', $action)
+                ->latest()
+                ->first();
+
+            $reason = $latestReason?->reason;
+        }
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Approved permanent jobs found',
+            'data' => $jobs,
+            'completion' => $completion->completion_percentage ?? 0,
+            'd_status' => [
+                'd_status' => $driverStatus,
+                'number' => '123456789',
+                'reason' => $reason,
+            ],
+        ]);
     }
 
-    $jobs = $jobQuery->orderBy('created_at', 'desc')
-        ->select('id', 'veh_type', 'join_date', 'min_exp', 'max_exp', 'job_location', 'min_salary', 'max_salary', 'created_at', 'c_by')
-        ->get()
-        ->map(function ($job) {
-            $job->c_on = Carbon::parse($job->created_at)->format('Y-m-d H:i:s');
-
-            $job->saved = DB::table('saved_jobs')
-                ->where('type', 'permanent')
-                ->where('trip_id', $job->id)
-                ->where('status', 'saved')
-                ->where('d_id', auth('sanctum')->user()->id)
-                ->exists() ?? false;
-
-            $job->applied = DB::table('sub_applied')
-                ->where('p_id', $job->id)
-                ->where('d_id', auth('sanctum')->user()->id)
-                ->where('status', 'Applied')
-                ->exists();
-
-            return $job;
-        })
-        ->reject(function ($job) {
-            return $job->applied;
-        })
-        ->values();
-
-    // Get profile completion data
-    $completion = $this->completion();
-
-    // Handle driver status and possible rejection/pending reason
-    $driverStatus = $user->status;
-    $reason = null;
-
-    if (in_array($driverStatus, ['rejected', 'pending'])) {
-        // Normalize status to match DB values
-        $action = $driverStatus === 'rejected' ? 'reject' : 'pending';
-
-        $latestReason = \App\Models\ApprovalReason::where('user_id', $user->id)
-            ->where('user_type', $user->type)
-            ->where('action', $action)
-            ->latest()
-            ->first();
-
-        $reason = $latestReason ? $latestReason->reason : null;
-    }
-
-    $d_status = [
-        'd_status' => $driverStatus,
-        'number'   => '123456789',
-        'reason'   => $reason,
-    ];
-
-    return response()->json([
-        'status'      => true,
-        'message'     => 'Nearby locations Jobs found',
-        'data'        => $jobs,
-        'completion'  => $completion->completion_percentage ?? 0,
-        'd_status'    => $d_status,
-    ]);
-}
     private function calculateDistance($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371;
@@ -554,7 +643,7 @@ public function permanent_dashboard(Request $req)
 
         $user = auth('sanctum')->user();
 
-        $exists =  SubApplied::where('d_id', $user->id)->where('status', 'Hired')->exists();
+        $exists = SubApplied::where('d_id', $user->id)->where('status', 'Hired')->exists();
 
         if ($exists) {
             return response()->json([
@@ -708,7 +797,7 @@ public function permanent_dashboard(Request $req)
                     ->where('status', 'saved')
                     ->exists() ?? false;
 
-                $job->applied  = DB::table('sub_applied')
+                $job->applied = DB::table('sub_applied')
                     ->where('p_id', $job->id)
                     ->where('d_id', auth('sanctum')->user()->id)
                     ->where('status', 'Applied')->exists();
@@ -732,94 +821,94 @@ public function permanent_dashboard(Request $req)
 
 
     //help and support
-public function help_support(Request $req)
-{
-    $type = auth('sanctum')->user()->type; 
+    public function help_support(Request $req)
+    {
+        $type = auth('sanctum')->user()->type;
 
-    $permanentHelp = [
-        [
-            'title' => [
-                'en' => 'How to edit my profile',
-                'ta' => 'என் சுயவிவரத்தை எப்படி திருத்துவது'
+        $permanentHelp = [
+            [
+                'title' => [
+                    'en' => 'How to edit my profile',
+                    'ta' => 'என் சுயவிவரத்தை எப்படி திருத்துவது'
+                ],
+                'description' => [
+                    'en' => 'To edit your profile, go to settings and tap "Edit Profile". Make necessary changes and save.',
+                    'ta' => 'உங்கள் சுயவிவரத்தை திருத்த, அமைப்புகளுக்குச் செல்லவும். "சுயவிவரத்தை திருத்து" என்பதைத் தேர்வு செய்து, தேவையான மாற்றங்களைச் செய்து சேமிக்கவும்.'
+                ]
             ],
-            'description' => [
-                'en' => 'To edit your profile, go to settings and tap "Edit Profile". Make necessary changes and save.',
-                'ta' => 'உங்கள் சுயவிவரத்தை திருத்த, அமைப்புகளுக்குச் செல்லவும். "சுயவிவரத்தை திருத்து" என்பதைத் தேர்வு செய்து, தேவையான மாற்றங்களைச் செய்து சேமிக்கவும்.'
-            ]
-        ],
-        [
-            'title' => [
-                'en' => 'How to change my password',
-                'ta' => 'என் கடவுச்சொல்லை எப்படி மாற்றுவது'
+            [
+                'title' => [
+                    'en' => 'How to change my password',
+                    'ta' => 'என் கடவுச்சொல்லை எப்படி மாற்றுவது'
+                ],
+                'description' => [
+                    'en' => 'Navigate to Settings > Security > Change Password. Enter your current and new password.',
+                    'ta' => 'அமைப்புகள் > பாதுகாப்பு > கடவுச்சொல் மாற்று சென்று, தற்போதைய மற்றும் புதிய கடவுச்சொல்லை உள்ளிடவும்.'
+                ]
             ],
-            'description' => [
-                'en' => 'Navigate to Settings > Security > Change Password. Enter your current and new password.',
-                'ta' => 'அமைப்புகள் > பாதுகாப்பு > கடவுச்சொல் மாற்று சென்று, தற்போதைய மற்றும் புதிய கடவுச்சொல்லை உள்ளிடவும்.'
+            [
+                'title' => [
+                    'en' => 'How to book a ride',
+                    'ta' => 'ஒரு பயணத்தை எப்படி முன்பதிவு செய்வது'
+                ],
+                'description' => [
+                    'en' => 'Open the rides tab, choose a ride, and tap "Book Now". Confirm the details and submit.',
+                    'ta' => 'பயணங்கள் பகுதியில் சென்று, ஒரு பயணத்தைத் தேர்ந்தெடுத்து "இப்போது முன்பதிவு செய்" என்பதைக் கிளிக் செய்யவும். விவரங்களை உறுதிப்படுத்தி சமர்ப்பிக்கவும்.'
+                ]
             ]
-        ],
-        [
-            'title' => [
-                'en' => 'How to book a ride',
-                'ta' => 'ஒரு பயணத்தை எப்படி முன்பதிவு செய்வது'
-            ],
-            'description' => [
-                'en' => 'Open the rides tab, choose a ride, and tap "Book Now". Confirm the details and submit.',
-                'ta' => 'பயணங்கள் பகுதியில் சென்று, ஒரு பயணத்தைத் தேர்ந்தெடுத்து "இப்போது முன்பதிவு செய்" என்பதைக் கிளிக் செய்யவும். விவரங்களை உறுதிப்படுத்தி சமர்ப்பிக்கவும்.'
-            ]
-        ]
-    ];
+        ];
 
-    $owner = [
-        [
-            'title' => [
-                'en' => 'How to edit my profile',
-                'ta' => 'என் சுயவிவரத்தை எப்படி திருத்துவது'
+        $owner = [
+            [
+                'title' => [
+                    'en' => 'How to edit my profile',
+                    'ta' => 'என் சுயவிவரத்தை எப்படி திருத்துவது'
+                ],
+                'description' => [
+                    'en' => 'Tap the menu bar, go to "Edit Profile", make the necessary changes, and tap "Save".',
+                    'ta' => 'மெனு பட்டியைத் தட்டவும், "சுயவிவரத்தை திருத்து" என்பதிற்குச் செல்லவும். தேவையான மாற்றங்களைச் செய்து "சேமி" என்பதைத் தட்டவும்.'
+                ]
             ],
-            'description' => [
-                'en' => 'Tap the menu bar, go to "Edit Profile", make the necessary changes, and tap "Save".',
-                'ta' => 'மெனு பட்டியைத் தட்டவும், "சுயவிவரத்தை திருத்து" என்பதிற்குச் செல்லவும். தேவையான மாற்றங்களைச் செய்து "சேமி" என்பதைத் தட்டவும்.'
-            ]
-        ],
-        [
-            'title' => [
-                'en' => 'How to contact my driver',
-                'ta' => 'என் ஓட்டுநரை எப்படி தொடர்பு கொள்வது'
+            [
+                'title' => [
+                    'en' => 'How to contact my driver',
+                    'ta' => 'என் ஓட்டுநரை எப்படி தொடர்பு கொள்வது'
+                ],
+                'description' => [
+                    'en' => 'Tap the "Call" button on the Driver Profile screen to directly contact your driver via phone.',
+                    'ta' => 'ஓட்டுநர்  சுயவிவரத் திரையில் உள்ள "அழை" பொத்தானை அழுத்தி, டிரைவரை நேரடியாக தொலைபேசியில் தொடர்பு கொள்ளவும்.'
+                ]
             ],
-            'description' => [
-                'en' => 'Tap the "Call" button on the Driver Profile screen to directly contact your driver via phone.',
-                'ta' => 'ஓட்டுநர்  சுயவிவரத் திரையில் உள்ள "அழை" பொத்தானை அழுத்தி, டிரைவரை நேரடியாக தொலைபேசியில் தொடர்பு கொள்ளவும்.'
-            ]
-        ],
-        [
-            'title' => [
-                'en' => 'Can I cancel a ride that is already started?',
-                'ta' => 'ஏற்கனவே தொடங்கிய பயணத்தை நான் ரத்து செய்ய முடியுமா?'
+            [
+                'title' => [
+                    'en' => 'Can I cancel a ride that is already started?',
+                    'ta' => 'ஏற்கனவே தொடங்கிய பயணத்தை நான் ரத்து செய்ய முடியுமா?'
+                ],
+                'description' => [
+                    'en' => 'Tap the "Cancel Trip" button on the Driver Profile screen to cancel your trip.',
+                    'ta' => 'ஓட்டுநர்  சுயவிவரத் திரையில் உள்ள "பயணத்தை ரத்து செய்" பொத்தானை அழுத்தி, உங்கள் பயணத்தை ரத்து செய்யவும்.'
+                ]
             ],
-            'description' => [
-                'en' => 'Tap the "Cancel Trip" button on the Driver Profile screen to cancel your trip.',
-                'ta' => 'ஓட்டுநர்  சுயவிவரத் திரையில் உள்ள "பயணத்தை ரத்து செய்" பொத்தானை அழுத்தி, உங்கள் பயணத்தை ரத்து செய்யவும்.'
+            [
+                'title' => [
+                    'en' => 'How to check when the trip was last updated',
+                    'ta' => 'பயணம் கடைசியாக எப்போது புதுப்பிக்கப்பட்டது என்பதை எப்படி பார்க்கலாம்?'
+                ],
+                'description' => [
+                    'en' => 'The "Last Updated" field on the Dashboard screen shows the most recent driver location update time.',
+                    'ta' => 'கட்டுப்பாட்டு பலகை திரையில் உள்ள "கடைசியாக புதுப்பிக்கப்பட்டது" புலம், டிரைவரின் சமீபத்திய இருப்பிடப் புதுப்பிப்பு நேரத்தைக் காட்டும்.'
+                ]
             ]
-        ],
-        [
-            'title' => [
-                'en' => 'How to check when the trip was last updated',
-                'ta' => 'பயணம் கடைசியாக எப்போது புதுப்பிக்கப்பட்டது என்பதை எப்படி பார்க்கலாம்?'
-            ],
-            'description' => [
-                'en' => 'The "Last Updated" field on the Dashboard screen shows the most recent driver location update time.',
-                'ta' => 'கட்டுப்பாட்டு பலகை திரையில் உள்ள "கடைசியாக புதுப்பிக்கப்பட்டது" புலம், டிரைவரின் சமீபத்திய இருப்பிடப் புதுப்பிப்பு நேரத்தைக் காட்டும்.'
-            ]
-        ]
-    ];
+        ];
 
-    // ✅ Choose help content based on type
-    $response = in_array($type, ['permanent', 'acting']) ? $permanentHelp : $owner;
+        // ✅ Choose help content based on type
+        $response = in_array($type, ['permanent', 'acting']) ? $permanentHelp : $owner;
 
-    return response()->json([
-        'status' => true,
-        'type'   => $type,
-        'data'   => $response
-    ]);
-}
+        return response()->json([
+            'status' => true,
+            'type' => $type,
+            'data' => $response
+        ]);
+    }
 
 }

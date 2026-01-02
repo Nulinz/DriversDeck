@@ -546,6 +546,157 @@ class Api_owner extends Controller
 
 
 
+    // public function trip_create(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'from_address' => 'required|string',
+    //         'to_address' => 'required|string',
+    //         'start_city' => 'required|string',
+    //         'end_city' => 'required|string',
+    //         'start_lat' => 'required|numeric',
+    //         'start_lng' => 'required|numeric',
+    //         'end_lat' => 'required|numeric',
+    //         'end_lng' => 'required|numeric',
+    //         'veh_type' => 'required|string',
+    //         'veh_name' => 'nullable|string',
+    //         'veh_number' => 'required|string|max:20',
+    //         'contact_number' => 'required|digits:10',
+    //         'alternate_number' => 'nullable|digits:10',
+    //         'start_date' => 'required|date',
+    //         'end_date' => 'required|date',
+    //         'start_time' => 'required',
+    //         'no_of_days' => 'required|integer',
+    //         'd_type' => 'required|string',
+
+    //     ], [
+    //         'from_address.required' => 'From address is required.',
+    //         'to_address.required' => 'To address is required.',
+    //         'start_city.required' => 'Start city is required.',
+    //         'end_city.required' => 'End city is required.',
+    //         'start_lat.required' => 'Start latitude is required.',
+    //         'start_lng.required' => 'Start longitude is required.',
+    //         'end_lat.required' => 'End latitude is required.',
+    //         'end_lng.required' => 'End longitude is required.',
+    //         'veh_type.required' => 'Vehicle type is required.',
+    //         'veh_name.required' => 'Vehicle name is required.',
+    //         'veh_number.required' => 'Vehicle number is required.',
+    //         'contact_number.required' => 'Contact number is required.',
+    //         'contact_number.digits' => 'Contact number must be 10 digits.',
+    //         'start_date.required' => 'Start date is required.',
+    //         'end_date.required' => 'End date is required.',
+    //         'start_time.required' => 'Start time is required.',
+    //         'no_of_days.required' => 'Number of days is required.',
+    //         'd_type.required' => 'Driver type is required.',
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(['errors' => $validator->errors()], 200);
+    //     }
+
+    //     $data = [
+    //         'st_loc' => $request->from_address,
+    //         'st_dest' => $request->to_address,
+    //         'st_city' => $request->start_city,
+    //         'end_city' => $request->end_city,
+    //         'st_cord' => $request->start_lat,
+    //         'start_lat' => $request->start_lat,
+    //         'start_lng' => $request->start_lng,
+    //         'end_cord' => $request->start_lng,
+    //         'dest_cord' => $request->end_lat . ',' . $request->end_lng,
+    //         'title' => 'Acting Driver Job',
+    //         'con_number' => $request->contact_number,
+    //         'alter_number' => $request->alternate_number,
+    //         // 'st_date'      => Carbon::createFromFormat('d-m-Y', $request->start_date)->format('Y-m-d'),
+    //         // 'end_date'     => Carbon::createFromFormat('d-m-Y', $request->end_date)->format('Y-m-d'),
+
+    //         'st_date' => Carbon::parse($request->start_date)->format('Y-m-d'),
+    //         'end_date' => Carbon::parse($request->end_date)->format('Y-m-d'),
+
+    //         'st_time' => $request->start_time,
+    //         'no_days' => $request->no_of_days,
+    //         'veh_type' => $request->veh_type,
+    //         'veh_name' => $request->veh_name,
+    //         'veh_number' => $request->veh_number,
+    //         'd_type' => $request->d_type,
+    //         'status' => 'pending',
+    //         'c_by' => auth('sanctum')->user()->id ?? 1,
+    //     ];
+
+    //     // Log::info($request->all());
+
+    //     $trip = Trip::create($data);
+
+    //     if ($trip) {
+
+    //         // $locationParts = explode(',', $location->cord);
+    //         $lat1 = $request->start_lat;
+    //         $lon1 = $request->start_lng;
+    //         $radius = 50;
+
+    //         $all_loc = DB::table('location_active')
+    //             ->where('status', 'active')
+    //             ->select('id', 'location', 'cord', 'status')
+    //             ->get();
+
+    //         $nearbyLocations = [];
+
+    //         foreach ($all_loc as $loc) {
+    //             // if (!$loc->cord) {
+    //             //     continue;
+    //             // }
+
+    //             $cordParts = explode(',', $loc->cord);
+    //             if (count($cordParts) !== 2) {
+    //                 continue;
+    //             }
+
+    //             $lat2 = trim($cordParts[0]);
+    //             $lon2 = trim($cordParts[1]);
+
+    //             $distance = $this->calculateDistance($lat1, $lon1, $lat2, $lon2);
+
+    //             if ($distance <= $radius) {
+    //                 $loc->distance = round($distance, 2); // optional: show how far it is
+    //                 $nearbyLocations[] = $loc;
+    //             }
+    //         }
+
+    //         // Log::info('Nearby Locations:', ['locations' => $nearbyLocations]);
+
+    //         $search_loc = collect($nearbyLocations)->pluck('id')->toArray();
+
+    //         $d_type = $trip->d_type; // could be 'male', 'female', or 'both'
+
+    //         $driverQuery = Driver::where('type', 'acting')
+    //             ->where('status', '!=', 'pending')
+    //             ->whereIn('location', $search_loc);
+
+    //         if ($d_type !== 'both') {
+    //             $driverQuery->where('gender', $d_type); // Replace 'gender' with the correct column
+    //         }
+
+    //         $driver = $driverQuery->pluck('id')->toArray();
+
+    //         // $d_type = $trip->d_type=='male' ? 
+
+
+    //         // $driver = Driver::where('type', 'acting')->where('status', '!=', 'pending')->whereIn('location', $search_loc)->pluck('id')->toArray();
+
+    //         if (count($driver) != 0) {
+    //             Trip_notify::dispatch($driver, $trip->id, 'trip_posted', auth('sanctum')->user()->id);
+    //         }
+    //     }
+
+
+
+    //     return response()->json([
+    //         'message' => 'Trip created successfully',
+    //         'trip_id' => $trip->id
+    //     ]);
+    // }
+
+
+
     public function trip_create(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -567,33 +718,13 @@ class Api_owner extends Controller
             'start_time' => 'required',
             'no_of_days' => 'required|integer',
             'd_type' => 'required|string',
-
-        ], [
-            'from_address.required' => 'From address is required.',
-            'to_address.required' => 'To address is required.',
-            'start_city.required' => 'Start city is required.',
-            'end_city.required' => 'End city is required.',
-            'start_lat.required' => 'Start latitude is required.',
-            'start_lng.required' => 'Start longitude is required.',
-            'end_lat.required' => 'End latitude is required.',
-            'end_lng.required' => 'End longitude is required.',
-            'veh_type.required' => 'Vehicle type is required.',
-            'veh_name.required' => 'Vehicle name is required.',
-            'veh_number.required' => 'Vehicle number is required.',
-            'contact_number.required' => 'Contact number is required.',
-            'contact_number.digits' => 'Contact number must be 10 digits.',
-            'start_date.required' => 'Start date is required.',
-            'end_date.required' => 'End date is required.',
-            'start_time.required' => 'Start time is required.',
-            'no_of_days.required' => 'Number of days is required.',
-            'd_type.required' => 'Driver type is required.',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 200);
         }
 
-        $data = [
+        $trip = Trip::create([
             'st_loc' => $request->from_address,
             'st_dest' => $request->to_address,
             'st_city' => $request->start_city,
@@ -606,94 +737,24 @@ class Api_owner extends Controller
             'title' => 'Acting Driver Job',
             'con_number' => $request->contact_number,
             'alter_number' => $request->alternate_number,
-            // 'st_date'      => Carbon::createFromFormat('d-m-Y', $request->start_date)->format('Y-m-d'),
-            // 'end_date'     => Carbon::createFromFormat('d-m-Y', $request->end_date)->format('Y-m-d'),
-
             'st_date' => Carbon::parse($request->start_date)->format('Y-m-d'),
             'end_date' => Carbon::parse($request->end_date)->format('Y-m-d'),
-
             'st_time' => $request->start_time,
             'no_days' => $request->no_of_days,
             'veh_type' => $request->veh_type,
             'veh_name' => $request->veh_name,
             'veh_number' => $request->veh_number,
             'd_type' => $request->d_type,
-            'status' => 'pending',
+            'status' => 'pending', // 🔒 always pending
             'c_by' => auth('sanctum')->user()->id ?? 1,
-        ];
-
-        // Log::info($request->all());
-
-        $trip = Trip::create($data);
-
-        if ($trip) {
-
-            // $locationParts = explode(',', $location->cord);
-            $lat1 = $request->start_lat;
-            $lon1 = $request->start_lng;
-            $radius = 50;
-
-            $all_loc = DB::table('location_active')
-                ->where('status', 'active')
-                ->select('id', 'location', 'cord', 'status')
-                ->get();
-
-            $nearbyLocations = [];
-
-            foreach ($all_loc as $loc) {
-                // if (!$loc->cord) {
-                //     continue;
-                // }
-
-                $cordParts = explode(',', $loc->cord);
-                if (count($cordParts) !== 2) {
-                    continue;
-                }
-
-                $lat2 = trim($cordParts[0]);
-                $lon2 = trim($cordParts[1]);
-
-                $distance = $this->calculateDistance($lat1, $lon1, $lat2, $lon2);
-
-                if ($distance <= $radius) {
-                    $loc->distance = round($distance, 2); // optional: show how far it is
-                    $nearbyLocations[] = $loc;
-                }
-            }
-
-            // Log::info('Nearby Locations:', ['locations' => $nearbyLocations]);
-
-            $search_loc = collect($nearbyLocations)->pluck('id')->toArray();
-
-            $d_type = $trip->d_type; // could be 'male', 'female', or 'both'
-
-            $driverQuery = Driver::where('type', 'acting')
-                ->where('status', '!=', 'pending')
-                ->whereIn('location', $search_loc);
-
-            if ($d_type !== 'both') {
-                $driverQuery->where('gender', $d_type); // Replace 'gender' with the correct column
-            }
-
-            $driver = $driverQuery->pluck('id')->toArray();
-
-            // $d_type = $trip->d_type=='male' ? 
-
-
-            // $driver = Driver::where('type', 'acting')->where('status', '!=', 'pending')->whereIn('location', $search_loc)->pluck('id')->toArray();
-
-            if (count($driver) != 0) {
-                Trip_notify::dispatch($driver, $trip->id, 'trip_posted', auth('sanctum')->user()->id);
-            }
-        }
-
-
+        ]);
 
         return response()->json([
-            'message' => 'Trip created successfully',
+            'message' => 'Trip submitted successfully. Waiting for admin approval.',
             'trip_id' => $trip->id
         ]);
     }
+
 
     public function calculateDistance($lat1, $lon1, $lat2, $lon2)
     {
