@@ -8,12 +8,12 @@
 
     <main class="content">
         <div class="container-fluid p-0">
-            <div class="row mb-2 mb-xl-3">
-                <div class="col-auto d-none d-sm-block">
+            <div class="row mb-xl-3 mb-2">
+                <div class="d-none d-sm-block col-auto">
                     <h3><strong>Drivers Management</strong></h3>
                 </div>
                 <div class="col-auto ms-auto text-end">
-                    @if(request()->query('type'))
+                    @if (request()->query('type'))
                         <button id="exportExcelBtn" class="btn btn-success">
                             <i class="fas fa-file-excel"></i> Export to Excel
                         </button>
@@ -27,12 +27,9 @@
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex mb-4">
-                                <button class="btn btn-link text-decoration-none fw-bold me-4 section-toggle active"
-                                    data-target="approved-section">Approved</button>
-                                <button class="btn btn-link text-decoration-none fw-bold section-toggle"
-                                    data-target="rejected-section">Rejected</button>
-                                <button class="btn btn-link text-decoration-none fw-bold section-toggle"
-                                    data-target="pending-section">Pending</button>
+                                <button class="btn btn-link text-decoration-none fw-bold section-toggle active" data-target="approved-section">Approved</button>
+                                <button class="btn btn-link text-decoration-none fw-bold section-toggle" data-target="rejected-section">Rejected</button>
+                                <button class="btn btn-link text-decoration-none fw-bold section-toggle" data-target="pending-section">Pending</button>
                             </div>
 
                             <!-- Vehicle Filter -->
@@ -50,7 +47,7 @@
                             <!-- Approved Section -->
                             <div id="approved-section" class="driver-section">
                                 <h5 class="text-muted mb-3">Approved List</h5>
-                                <table id="approved-table" class="table table-striped" style="width:100%">
+                                <table id="approved-table" class="table-striped table" style="width:100%">
                                     <thead>
                                         <tr>
                                             <th>#</th>
@@ -75,22 +72,31 @@
                                                 <td>{{ $candidate->loc }}</td>
                                                 <td>{{ ucfirst($candidate->type) }}</td>
                                                 <td>
-                                                    <div class="form-check form-switch">
-                                                        <input class="form-check-input active-status-toggle" type="checkbox"
-                                                            id="activeStatus{{ $candidate->id }}" data-id="{{ $candidate->id }}"
-                                                            {{ $candidate->active_status == 'active' ? 'checked' : '' }}>
+                                                    <div class="form-check form-switch d-flex align-items-center gap-2">
+                                                        <input class="form-check-input active-status-toggle" type="checkbox" id="activeStatus{{ $candidate->id }}"
+                                                            data-id="{{ $candidate->id }}" {{ $candidate->active_status == 'active' ? 'checked' : '' }}>
                                                         <label class="form-check-label" for="activeStatus{{ $candidate->id }}">
-                                                            <span
-                                                                class="badge {{ $candidate->active_status == 'active' ? 'bg-success' : 'bg-secondary' }}">
+                                                            <span class="badge {{ $candidate->active_status == 'active' ? 'bg-success' : 'bg-secondary' }}">
                                                                 {{ ucfirst($candidate->active_status) }}
                                                             </span>
                                                         </label>
                                                     </div>
                                                 </td>
                                                 <td>
-                                                    <a href="{{ route('admin.candidate.profile', ['id' => $candidate->id]) }}">
-                                                        <i class="fs-4 text-dark fa fa-external-link-alt"></i>
-                                                    </a>
+                                                    <div class="d-flex gap-2 align-items-center">
+                                                        <a href="{{ route('admin.candidate.profile', ['id' => $candidate->id]) }}">
+                                                            <i class="fs-4 text-dark fa fa-external-link-alt"></i>
+                                                        </a>
+
+                                                        {{-- delete --}}
+                                                        <form action="{{ route('admin.candidate.delete', $candidate->id) }}" method="POST" style="display:inline;">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" onclick="return confirm('Delete this driver?')" style="border:none; background:none;">
+                                                                <i class="text-dark fa fa-trash fs-6" aria-hidden="true"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -101,7 +107,7 @@
                             <!-- Rejected Section -->
                             <div id="rejected-section" class="driver-section" style="display: none;">
                                 <h5 class="text-muted mb-3">Rejected List</h5>
-                                <table id="rejected-table" class="table table-striped" style="width:100%">
+                                <table id="rejected-table" class="table-striped table" style="width:100%">
                                     <thead>
                                         <tr>
                                             <th>#</th>
@@ -116,185 +122,195 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($rejectedDrivers as $candidate)
-                                                                            <tr>
-                                                                                <td>{{ $loop->iteration }}</td>
-                                                                                <td>{{ $candidate->name }}</td>
-                                                                                <td>{{ \Carbon\Carbon::parse($candidate->created_at)->format('d-m-Y') }}</td>
-                                                                                <td>{{ $candidate->phone }}</td>
-                                                                                <td>{{ $candidate->loc }}</td>
-                                                                                <td>{{ ucfirst($candidate->type) }}</td>
-                                                                                <td>
-                                                                                    <div class="form-check form-switch">
-                                                                                        <input class="form-check-input active-status-toggle" type="checkbox"
-                                                                                            id="activeStatusRej{{ $candidate->id }}"
-                                                                                            data-id="{{ $candidate->id }}" {{ $candidate->active_status == 'active' ? 'checked' : '' }}>
-                                                                                        <label class="form-check-label">
-                                                                                            <span
-                                                                                                class="badge {{ $candidate->active_status == 'active' ? 'bg-success' : 'bg-secondary' }}">
-                                                                                                {{ ucfirst($candidate->active_status) }}
-                                                                                            </span>
-                                                                                        </label>
-                                                                                    </div>
-                                                                                </td>
-                                                                                <td>
-                                                                                    <a href="{{ route('admin.candidate.profile', ['id' => $candidate->id]) }}"
-                                                                                        title="View Profile">
-                                                                                        <i class="fs-5 text-dark fa fa-external-link-alt"></i>
-                                                                                    </a>
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $candidate->name }}</td>
+                                                <td>{{ \Carbon\Carbon::parse($candidate->created_at)->format('d-m-Y') }}</td>
+                                                <td>{{ $candidate->phone }}</td>
+                                                <td>{{ $candidate->loc }}</td>
+                                                <td>{{ ucfirst($candidate->type) }}</td>
+                                                <td>
+                                                    <div class="form-check form-switch d-flex align-items-center gap-2">
+                                                        <input class="form-check-input active-status-toggle" type="checkbox" id="activeStatusRej{{ $candidate->id }}"
+                                                            data-id="{{ $candidate->id }}" {{ $candidate->active_status == 'active' ? 'checked' : '' }}>
+                                                        <label class="form-check-label">
+                                                            <span class="badge {{ $candidate->active_status == 'active' ? 'bg-success' : 'bg-secondary' }}">
+                                                                {{ ucfirst($candidate->active_status) }}
+                                                            </span>
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex gap-2 align-items-center">
 
-                                                                                    <form action="{{ route('admin.handle.approval', [
-                                                'type' => $candidate->type,
-                                                'id' => $candidate->id,
-                                                'action' => 'approve'
-                                            ]) }}" method="POST" style="display:inline;">
-                                                                                        @csrf
-                                                                                        <button type="submit" class="btn btn-success btn-sm ms-2"
-                                                                                            onclick="return confirm('Approve this driver?')">
-                                                                                            <i class="fa-solid fa-check"></i>
-                                                                                        </button>
-                                                                                    </form>
-                                                                                </td>
-                                                                            </tr>
+                                                        <a href="{{ route('admin.candidate.profile', ['id' => $candidate->id]) }}" title="View Profile">
+                                                            <i class="fs-5 text-dark fa fa-external-link-alt"></i>
+                                                        </a>
+
+                                                        <form
+                                                            action="{{ route('admin.handle.approval', [
+                                                                'type' => $candidate->type,
+                                                                'id' => $candidate->id,
+                                                                'action' => 'approve',
+                                                            ]) }}"
+                                                            method="POST" style="display:inline;">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-success btn-sm ms-2" onclick="return confirm('Approve this driver?')">
+                                                                <i class="fa-solid fa-check"></i>
+                                                            </button>
+                                                        </form>
+
+                                                        {{-- delete --}}
+                                                        <form action="{{ route('admin.candidate.delete', $candidate->id) }}" method="POST" style="display:inline;">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" onclick="return confirm('Delete this driver?')" style="border:none; background:none;">
+                                                                <i class="text-dark fas fa-trash-alt fs-6"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
                                         @endforeach
                                     </tbody>
                                 </table>
                             </div>
 
                             <!-- Pending Section -->
-<!-- Pending Section -->
-<div id="pending-section" class="driver-section" style="display: none;">
-    <h5 class="text-muted mb-3">Pending List</h5>
+                            <div id="pending-section" class="driver-section" style="display: none;">
+                                <h5 class="text-muted mb-3">Pending List</h5>
 
-    <table id="pending-table" class="table table-striped" style="width:100%">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Driver Name</th>
-                <th>Registration Date</th>
-                <th>Contact Number</th>
-                <th>Location</th>
-                <th>Registration Type</th>
-                <th>Action</th>
-            </tr>
-        </thead>
+                                <table id="pending-table" class="table-striped table" style="width:100%">
+                                    <thead>
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Driver Name</th>
+                                            <th>Registration Date</th>
+                                            <th>Contact Number</th>
+                                            <th>Location</th>
+                                            <th>Registration Type</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
 
-        <tbody>
-            @forelse ($pendingDrivers as $candidate)
-                <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $candidate->name }}</td>
-                    <td>{{ \Carbon\Carbon::parse($candidate->created_at)->format('d-m-Y') }}</td>
-                    <td>{{ $candidate->phone }}</td>
-                    <td>{{ $candidate->loc }}</td>
-                    <td>{{ ucfirst($candidate->type) }}</td>
-                    <td>
-                        {{-- View --}}
-                        <a href="{{ route('admin.candidate.profile', ['id' => $candidate->id]) }}">
-                            <i class="fs-5 text-dark fa fa-external-link-alt"></i>
-                        </a>
+                                    <tbody>
+                                        @forelse ($pendingDrivers as $candidate)
+                                            <tr>
+                                                <td>{{ $loop->iteration }}</td>
+                                                <td>{{ $candidate->name }}</td>
+                                                <td>{{ \Carbon\Carbon::parse($candidate->created_at)->format('d-m-Y') }}</td>
+                                                <td>{{ $candidate->phone }}</td>
+                                                <td>{{ $candidate->loc }}</td>
+                                                <td>{{ ucfirst($candidate->type) }}</td>
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
 
-                        {{-- Approve --}}
-                        <form action="{{ route('admin.handle.approval', [
-                            'type' => $candidate->type,
-                            'id' => $candidate->id,
-                            'action' => 'approve'
-                        ]) }}" method="POST" style="display:inline;">
-                            @csrf
-                            <button class="btn btn-success btn-sm p-1"
-                                    onclick="return confirm('Approve this driver?')">
-                                <i class="fa fa-check fs-6"></i>
-                            </button>
-                        </form>
+                                                        {{-- Approve --}}
+                                                        <form
+                                                            action="{{ route('admin.handle.approval', [
+                                                                'type' => $candidate->type,
+                                                                'id' => $candidate->id,
+                                                                'action' => 'approve',
+                                                            ]) }}"
+                                                            method="POST" style="display:inline;">
+                                                            @csrf
+                                                            <button class="btn btn-success btn-sm p-1" onclick="return confirm('Approve this driver?')">
+                                                                <i class="fa fa-check fs-6"></i>
+                                                            </button>
+                                                        </form>
 
-                        {{-- Reject --}}
-                        <button type="button"
-                                class="btn btn-danger btn-sm p-1"
-                                data-bs-toggle="modal"
-                                data-bs-target="#rejectModal{{ $candidate->id }}">
-                            <i class="fa fa-times fs-6"></i>
-                        </button>
-                    </td>
-                </tr>
+                                                        {{-- Reject --}}
+                                                        <button type="button" class="btn btn-danger btn-sm p-1" data-bs-toggle="modal"
+                                                            data-bs-target="#rejectModal{{ $candidate->id }}">
+                                                            <i class="fa fa-times fs-6"></i>
+                                                        </button>
 
-                {{-- ✅ Reject Modal (INSIDE LOOP) --}}
-                <div class="modal fade" id="rejectModal{{ $candidate->id }}" tabindex="-1">
-                    <div class="modal-dialog modal-dialog-centered modal-sm">
-                        <div class="modal-content">
-                            <form method="POST" action="{{ route('admin.handle.approval.reason') }}">
-                                @csrf
+                                                        {{-- View --}}
+                                                        <a href="{{ route('admin.candidate.profile', ['id' => $candidate->id]) }}">
+                                                            <i class="fs-5 text-dark fa fa-external-link-alt"></i>
+                                                        </a>
 
-                                <input type="hidden" name="type" value="{{ $candidate->type }}">
-                                <input type="hidden" name="id" value="{{ $candidate->id }}">
-                                <input type="hidden" name="action" value="reject">
+                                                        {{-- delete --}}
+                                                        <form action="{{ route('admin.candidate.delete', $candidate->id) }}" method="POST" style="display:inline;">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" onclick="return confirm('Delete this driver?')" style="border:none; background:none;">
+                                                                <i class="text-dark fas fa-trash-alt fs-6"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
 
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Reject Driver</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
+                                            {{-- ✅ Reject Modal (INSIDE LOOP) --}}
+                                            <div class="modal fade" id="rejectModal{{ $candidate->id }}" tabindex="-1">
+                                                <div class="modal-dialog modal-dialog-centered modal-sm">
+                                                    <div class="modal-content">
+                                                        <form method="POST" action="{{ route('admin.handle.approval.reason') }}">
+                                                            @csrf
 
-                                <div class="modal-body">
-                                    <textarea name="reason"
-                                              class="form-control"
-                                              rows="4"
-                                              required
-                                              minlength="10"
-                                              placeholder="Enter rejection reason (min 10 characters)"></textarea>
-                                </div>
+                                                            <input type="hidden" name="type" value="{{ $candidate->type }}">
+                                                            <input type="hidden" name="id" value="{{ $candidate->id }}">
+                                                            <input type="hidden" name="action" value="reject">
 
-                                <div class="modal-footer">
-                                    <button type="submit" class="btn btn-danger">
-                                        Reject
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title">Reject Driver</h5>
+                                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                            </div>
 
-            @empty
-               
-            @endforelse
-        </tbody>
-    </table>
-</div>
+                                                            <div class="modal-body">
+                                                                <textarea name="reason" class="form-control" rows="4" required minlength="10" placeholder="Enter rejection reason (min 10 characters)"></textarea>
+                                                            </div>
+
+                                                            <div class="modal-footer">
+                                                                <button type="submit" class="btn btn-danger">
+                                                                    Reject
+                                                                </button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        @empty
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
 
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-<div class="modal fade" id="rejectModal{{ $candidate->id }}" tabindex="-1">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content">
-            <form method="POST" action="{{ route('admin.handle.approval.reason') }}">
-                @csrf
+        <div class="modal fade" id="rejectModal{{ $candidate->id }}" tabindex="-1">
+            <div class="modal-dialog modal-dialog-centered modal-sm">
+                <div class="modal-content">
+                    <form method="POST" action="{{ route('admin.handle.approval.reason') }}">
+                        @csrf
 
-                <input type="hidden" name="type" value="{{ $candidate->type }}">
-                <input type="hidden" name="id" value="{{ $candidate->id }}">
-                <input type="hidden" name="action" value="reject">
+                        <input type="hidden" name="type" value="{{ $candidate->type }}">
+                        <input type="hidden" name="id" value="{{ $candidate->id }}">
+                        <input type="hidden" name="action" value="reject">
 
-                <div class="modal-header">
-                    <h5 class="modal-title">Reject Driver</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <div class="modal-header">
+                            <h5 class="modal-title">Reject Driver</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <textarea name="reason" class="form-control" rows="4" required placeholder="Enter rejection reason (min 10 chars)"></textarea>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-danger">
+                                Reject
+                            </button>
+                        </div>
+                    </form>
                 </div>
-
-                <div class="modal-body">
-                    <textarea name="reason"
-                              class="form-control"
-                              rows="4"
-                              required
-                              placeholder="Enter rejection reason (min 10 chars)"></textarea>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-danger">
-                        Reject
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
-</div>
 
     </main>
 
@@ -351,7 +367,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function() {
             let approvedTable, rejectedTable, pendingTable;
 
             function initTable(tableId) {
@@ -370,14 +386,18 @@
                         infoFiltered: "(filtered from _MAX_ total drivers)",
                         zeroRecords: "No matching drivers found"
                     },
-                    columnDefs: [{ targets: -1, orderable: false, searchable: false }]
+                    columnDefs: [{
+                        targets: -1,
+                        orderable: false,
+                        searchable: false
+                    }]
                 });
             }
 
             approvedTable = initTable("approved-table");
 
             document.querySelectorAll('.section-toggle').forEach(button => {
-                button.addEventListener('click', function () {
+                button.addEventListener('click', function() {
                     document.querySelectorAll('.section-toggle').forEach(btn => {
                         btn.classList.remove('active');
                         btn.style.color = '#666';
@@ -406,7 +426,7 @@
                 });
             });
 
-            $('#vehicleFilter').on('change', function () {
+            $('#vehicleFilter').on('change', function() {
                 if (approvedTable) approvedTable.draw();
                 if (rejectedTable) rejectedTable.draw();
                 if (pendingTable) pendingTable.draw();
@@ -414,7 +434,7 @@
         });
 
         // Export to Excel with Driver Table Data Only
-        document.getElementById('exportExcelBtn')?.addEventListener('click', function () {
+        document.getElementById('exportExcelBtn')?.addEventListener('click', function() {
             // Show loading state
             const btn = this;
             const originalText = btn.innerHTML;
@@ -504,23 +524,54 @@
                     const ws = XLSX.utils.aoa_to_sheet(data);
 
                     // Set column widths for better readability
-                    ws['!cols'] = [
-                        { wch: 20 }, // Driver Name
-                        { wch: 15 }, // Phone
-                        { wch: 10 }, // Gender
-                        { wch: 15 }, // Marital Status
-                        { wch: 12 }, // Blood Group
-                        { wch: 12 }, // Location ID
-                        { wch: 20 }, // Location Name
-                        { wch: 15 }, // District
-                        { wch: 18 }, // License Number
-                        { wch: 15 }, // Aadhar
-                        { wch: 15 }, // Reference Code
-                        { wch: 18 }, // Registration Type
-                        { wch: 12 }, // Subscription
-                        { wch: 15 }, // Active Status
-                        { wch: 12 }, // Status
-                        { wch: 18 } // Registration Date
+                    ws['!cols'] = [{
+                            wch: 20
+                        }, // Driver Name
+                        {
+                            wch: 15
+                        }, // Phone
+                        {
+                            wch: 10
+                        }, // Gender
+                        {
+                            wch: 15
+                        }, // Marital Status
+                        {
+                            wch: 12
+                        }, // Blood Group
+                        {
+                            wch: 12
+                        }, // Location ID
+                        {
+                            wch: 20
+                        }, // Location Name
+                        {
+                            wch: 15
+                        }, // District
+                        {
+                            wch: 18
+                        }, // License Number
+                        {
+                            wch: 15
+                        }, // Aadhar
+                        {
+                            wch: 15
+                        }, // Reference Code
+                        {
+                            wch: 18
+                        }, // Registration Type
+                        {
+                            wch: 12
+                        }, // Subscription
+                        {
+                            wch: 15
+                        }, // Active Status
+                        {
+                            wch: 12
+                        }, // Status
+                        {
+                            wch: 18
+                        } // Registration Date
                     ];
 
                     // Add worksheet to workbook
@@ -565,7 +616,7 @@
 
         // Section toggle functionality
         document.querySelectorAll('.section-toggle').forEach(button => {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function() {
                 // Remove active class from all buttons
                 document.querySelectorAll('.section-toggle').forEach(btn => {
                     btn.classList.remove('active');
@@ -607,15 +658,15 @@
             }
 
             fetch(`/admin/candidate/active-status-toggle/${id}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({
-                    active_status: newActiveStatus
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        active_status: newActiveStatus
+                    })
                 })
-            })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
@@ -643,7 +694,7 @@
 
         // Status toggle functionality (existing)
         document.querySelectorAll('.toggle-status').forEach(button => {
-            button.addEventListener('click', function () {
+            button.addEventListener('click', function() {
                 const id = this.getAttribute('data-id');
                 const newStatus = this.getAttribute('data-status');
 
@@ -656,15 +707,15 @@
                 }
 
                 fetch(`/admin/candidate/status-toggle/${id}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        status: newStatus
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({
+                            status: newStatus
+                        })
                     })
-                })
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
@@ -679,7 +730,5 @@
                     });
             });
         });
-
     </script>
-
 @endsection

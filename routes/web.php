@@ -66,6 +66,7 @@ Route::middleware(['auth:web', 'cook.auth.corp'])->group(function () {
     Route::get('/admin/candidate/profile/{id}', [CandidateController::class, 'profile'])->name('admin.candidate.profile');
     Route::post('/admin/corporate/status-toggle/{id}', [CandidateController::class, 'toggleStatus']);
     Route::put('/admin/candidate/update-profile/{id}', [CandidateController::class, 'updateProfile'])->name('admin.candidate.update_profile');
+    Route::delete('/admin/candidate/delete/{id}', [CandidateController::class, 'deleteCandidate'])->name('admin.candidate.delete');
 
     // Route::get('/admin/dashboard', [DashboardController::class, 'index'])->name('admin.dashboard.index');
     // Add this route to your web.php file
@@ -98,6 +99,7 @@ Route::middleware(['auth:web', 'cook.auth.corp'])->group(function () {
         ->name('api.driver.typeChangeHistory');
     // corprate
     Route::get('/admin/corprate_list', [CorprateController::class, 'corprate'])->name('admin.corprate.corprate_list');
+    Route::delete('/admin/corprate-delete/{id}', [CorprateController::class, 'corprateDelete'])->name('admin.corprate.delete');
     // Add this route to your web.php file
     Route::post('/admin/corporate/active-status-toggle/{id}', [CorprateController::class, 'toggleActiveStatus'])->name('admin.corporate.active-status-toggle');
     Route::get('/admin/corporate/export-data', [CorprateController::class, 'exportCorporateData'])->name('admin.corporate.export.data');

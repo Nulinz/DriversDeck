@@ -3,12 +3,12 @@
 @section('content')
     <main class="content">
         <div class="container-fluid p-0">
-            <div class="row mb-2 mb-xl-3">
-                <div class="col-auto d-none d-sm-block">
+            <div class="row mb-xl-3 mb-2">
+                <div class="d-none d-sm-block col-auto">
                     <h3><strong>Corporate List</strong></h3>
                 </div>
                 <div class="col-auto ms-auto text-end">
-                    @if(request()->query('type'))
+                    @if (request()->query('type'))
                         <button id="exportExcelBtn" class="btn btn-success">
                             <i class="fas fa-file-excel"></i> Export to Excel
                         </button>
@@ -20,7 +20,7 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-body">
-                            <table id="datatables-reponsive" class="table table-striped" style="width:100%">
+                            <table id="datatables-reponsive" class="table-striped table" style="width:100%">
                                 <thead>
                                     <tr>
                                         <th>#</th>
@@ -44,11 +44,8 @@
                                             <td>{{ $corprate->loc }}</td>
                                             <td>
                                                 <div class="form-check form-switch">
-                                                    <input class="form-check-input active-status-toggle" 
-                                                           type="checkbox" 
-                                                           id="activeStatus{{ $corprate->id }}"
-                                                           data-id="{{ $corprate->id }}"
-                                                           {{ $corprate->active_status == 'active' ? 'checked' : '' }}>
+                                                    <input class="form-check-input active-status-toggle" type="checkbox" id="activeStatus{{ $corprate->id }}"
+                                                        data-id="{{ $corprate->id }}" {{ $corprate->active_status == 'active' ? 'checked' : '' }}>
                                                     <label class="form-check-label" for="activeStatus{{ $corprate->id }}">
                                                         <span class="badge {{ $corprate->active_status == 'active' ? 'bg-success' : 'bg-secondary' }}">
                                                             {{ ucfirst($corprate->active_status) }}
@@ -57,12 +54,21 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <a
-                                                    href="{{ $corprate->type === 'corporate'
-                                                        ? route('admin.corprate.corprate_profile', ['id' => $corprate->id])
-                                                        : route('admin.corprate.owner_profile', ['id' => $corprate->id]) }}">
-                                                    <i class="fs-4 text-dark fa fa-external-link-alt"></i>
-                                                </a>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <a
+                                                        href="{{ $corprate->type === 'corporate' ? route('admin.corprate.corprate_profile', ['id' => $corprate->id]) : route('admin.corprate.owner_profile', ['id' => $corprate->id]) }}">
+                                                        <i class="fs-4 text-dark fa fa-external-link-alt"></i>
+                                                    </a>
+
+                                                    {{-- delete --}}
+                                                    <form action="{{ route('admin.corprate.delete', $corprate->id) }}" method="POST" style="display:inline;">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" onclick="return confirm('Delete this corprate?')" style="border:none; background:none;">
+                                                            <i class="text-dark fa fa-trash fs-6" aria-hidden="true"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -137,12 +143,12 @@
                 const originalText = btn.innerHTML;
                 btn.disabled = true;
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting...';
-                
+
                 // Get URL parameters
                 const urlParams = new URLSearchParams(window.location.search);
                 const type = urlParams.get('type') || 'all';
                 const status = 'approved'; // Default status
-                
+
                 // Fetch complete corporate data from backend
                 fetch(`/admin/corporate/export-data?type=${type}&status=${status}`)
                     .then(response => {
@@ -155,19 +161,19 @@
                         if (!result.success) {
                             throw new Error(result.message || 'Failed to fetch corporate data');
                         }
-                        
+
                         const corporates = result.data;
-                        
+
                         if (corporates.length === 0) {
                             alert('No data available to export.');
                             btn.disabled = false;
                             btn.innerHTML = originalText;
                             return;
                         }
-                        
+
                         // Prepare data for export
                         const data = [];
-                        
+
                         // Add comprehensive headers
                         const headers = [
                             'Type',
@@ -201,7 +207,7 @@
                             'Registration Date',
                         ];
                         data.push(headers);
-                        
+
                         // Add all corporate data
                         corporates.forEach(corporate => {
                             const row = [
@@ -237,58 +243,115 @@
                             ];
                             data.push(row);
                         });
-                        
+
                         // Create workbook and worksheet
                         const wb = XLSX.utils.book_new();
                         const ws = XLSX.utils.aoa_to_sheet(data);
-                        
+
                         // Set column widths for better readability
-                        ws['!cols'] = [
-                            { wch: 12 }, // Type
-                            { wch: 25 }, // Company Name
-                            { wch: 20 }, // Contact Person
-                            { wch: 10 }, // Gender
-                            { wch: 15 }, // Contact
-                            { wch: 25 }, // Email
-                            { wch: 15 }, // Company Type
-                            { wch: 15 }, // Company Contact
-                            { wch: 25 }, // Company Email
-                            { wch: 15 }, // Aadhar
-                            { wch: 15 }, // Alt Number
-                            { wch: 30 }, // Address 1
-                            { wch: 30 }, // Address 2
-                            { wch: 15 }, // City
-                            { wch: 15 }, // State
-                            { wch: 10 }, // PIN
-                            { wch: 12 }, // Location ID
-                            { wch: 20 }, // Location Name
-                            { wch: 15 }, // District
-                            { wch: 15 }, // PAN
-                            { wch: 18 }, // GST
-                            { wch: 12 }, // Vehicles
-                            { wch: 12 }, // Drivers
-                            { wch: 12 }, // Vacancies
-                            { wch: 12 }, // Subscription
-                            { wch: 15 }, // Reference
-                            { wch: 15 }, // Active Status
-                            { wch: 12 }, // Status
-                            { wch: 18 }, // Registration
+                        ws['!cols'] = [{
+                                wch: 12
+                            }, // Type
+                            {
+                                wch: 25
+                            }, // Company Name
+                            {
+                                wch: 20
+                            }, // Contact Person
+                            {
+                                wch: 10
+                            }, // Gender
+                            {
+                                wch: 15
+                            }, // Contact
+                            {
+                                wch: 25
+                            }, // Email
+                            {
+                                wch: 15
+                            }, // Company Type
+                            {
+                                wch: 15
+                            }, // Company Contact
+                            {
+                                wch: 25
+                            }, // Company Email
+                            {
+                                wch: 15
+                            }, // Aadhar
+                            {
+                                wch: 15
+                            }, // Alt Number
+                            {
+                                wch: 30
+                            }, // Address 1
+                            {
+                                wch: 30
+                            }, // Address 2
+                            {
+                                wch: 15
+                            }, // City
+                            {
+                                wch: 15
+                            }, // State
+                            {
+                                wch: 10
+                            }, // PIN
+                            {
+                                wch: 12
+                            }, // Location ID
+                            {
+                                wch: 20
+                            }, // Location Name
+                            {
+                                wch: 15
+                            }, // District
+                            {
+                                wch: 15
+                            }, // PAN
+                            {
+                                wch: 18
+                            }, // GST
+                            {
+                                wch: 12
+                            }, // Vehicles
+                            {
+                                wch: 12
+                            }, // Drivers
+                            {
+                                wch: 12
+                            }, // Vacancies
+                            {
+                                wch: 12
+                            }, // Subscription
+                            {
+                                wch: 15
+                            }, // Reference
+                            {
+                                wch: 15
+                            }, // Active Status
+                            {
+                                wch: 12
+                            }, // Status
+                            {
+                                wch: 18
+                            }, // Registration
                         ];
-                        
+
                         // Add worksheet to workbook
                         const sheetName = `${type.charAt(0).toUpperCase() + type.slice(1)} Records`;
                         XLSX.utils.book_append_sheet(wb, ws, sheetName);
-                        
+
                         // Generate filename
                         const filename = `${type}_${status}_${new Date().toISOString().split('T')[0]}.xlsx`;
-                        
+
                         // Save file
                         XLSX.writeFile(wb, filename);
-                        
+
                         // Reset button
                         btn.disabled = false;
                         btn.innerHTML = originalText;
-                        
+
                         // Show success message
                         alert(`✅ Excel file exported successfully!\n\nTotal Records: ${corporates.length}\nFilename: ${filename}`);
                     })
@@ -299,7 +362,7 @@
                         alert('❌ Failed to export data. Please try again.\n\nError: ' + error.message);
                     });
             });
-            
+
             // Helper function to format dates
             function formatDate(dateString) {
                 if (!dateString) return '-';
@@ -319,13 +382,13 @@
             function handleActiveStatusToggle(event) {
                 const toggle = event.target;
                 if (!toggle.classList.contains('active-status-toggle')) return;
-                
+
                 const id = toggle.getAttribute('data-id');
                 const isChecked = toggle.checked;
                 const newActiveStatus = isChecked ? 'active' : 'inactive';
-                
+
                 const message = `Are you sure you want to mark this corporate as ${newActiveStatus}?`;
-                
+
                 if (!confirm(message)) {
                     // Revert the toggle if user cancels
                     toggle.checked = !isChecked;

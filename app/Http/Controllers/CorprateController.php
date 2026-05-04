@@ -16,60 +16,60 @@ use App\Models\District;
 
 class CorprateController extends Controller
 {
-//   public function corprate()
-// {
-//     $corprate_list = Corporate::where('status', 'approved')->get()->map(function ($list) {
-//         $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
-//         return $list;
-//     });
+    //   public function corprate()
+    // {
+    //     $corprate_list = Corporate::where('status', 'approved')->get()->map(function ($list) {
+    //         $list->loc = DB::table('location_active')->where('id', $list->location)->value('location');
+    //         return $list;
+    //     });
 
-//     return view('admin.corprate.corprate_list', compact('corprate_list'));
-// }
+    //     return view('admin.corprate.corprate_list', compact('corprate_list'));
+    // }
 
-public function corprate(Request $request)
-{
-    // Get the type from query parameter
-    $type = $request->query('type');
-    
-    // Start with base query
-    $query = Corporate::where('status', 'approved');
-    
-    // Apply filter if type is provided
-    if ($type && in_array($type, ['corporate', 'owner'])) {
-        $query->where('type', $type);
+    public function corprate(Request $request)
+    {
+        // Get the type from query parameter
+        $type = $request->query('type');
+
+        // Start with base query
+        $query = Corporate::where('status', 'approved');
+
+        // Apply filter if type is provided
+        if ($type && in_array($type, ['corporate', 'owner'])) {
+            $query->where('type', $type);
+        }
+
+        // Get the filtered list with location
+        $corprate_list = $query->get()->map(function ($list) {
+            $list->loc = DB::table('location_active')
+                ->where('id', $list->location)
+                ->value('location');
+            return $list;
+        });
+
+        return view('admin.corprate.corprate_list', compact('corprate_list', 'type'));
     }
-    
-    // Get the filtered list with location
-    $corprate_list = $query->get()->map(function ($list) {
-        $list->loc = DB::table('location_active')
-            ->where('id', $list->location)
-            ->value('location');
-        return $list;
-    });
 
-    return view('admin.corprate.corprate_list', compact('corprate_list', 'type'));
-}
+    // Add new method to toggle active status for corporate
+    public function toggleActiveStatus(Request $request, $id)
+    {
+        try {
+            $corporate = Corporate::findOrFail($id);
+            $corporate->active_status = $request->active_status;
+            $corporate->save();
 
-// Add new method to toggle active status for corporate
-public function toggleActiveStatus(Request $request, $id)
-{
-    try {
-        $corporate = Corporate::findOrFail($id);
-        $corporate->active_status = $request->active_status;
-        $corporate->save();
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Active status updated successfully',
-            'new_status' => $corporate->active_status
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to update active status'
-        ], 500);
+            return response()->json([
+                'success' => true,
+                'message' => 'Active status updated successfully',
+                'new_status' => $corporate->active_status
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to update active status'
+            ], 500);
+        }
     }
-}
 
     // Optional: Add method to get corporates by active status
     public function getCorporatesByActiveStatus($status)
@@ -173,72 +173,72 @@ public function toggleActiveStatus(Request $request, $id)
             'subscriptions'
         ));
     }
-        public function update_corporate_profile(Request $request, $id)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'c_name' => 'required|string|max:255',
-        'c_num' => 'required|string|max:15',
-        'a_num' => 'nullable|string|max:15',
-        'c_mail' => 'required|email|max:255',
-        'ad_1' => 'required|string|max:255',
-        'ad_2' => 'nullable|string|max:255',
-        'city' => 'required|string|max:100',
-        'state' => 'required|string|max:100',
-        'pan' => 'nullable|string|max:10',
-        'gst' => 'nullable|string|max:15',
-        'no_vac' => 'required|integer|min:0',
-        'no_veh' => 'required|integer|min:0',
-        'no_driver' => 'required|integer|min:0',
-        'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-    ]);
+    public function update_corporate_profile(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'c_name' => 'required|string|max:255',
+            'c_num' => 'required|string|max:15',
+            'a_num' => 'nullable|string|max:15',
+            'c_mail' => 'required|email|max:255',
+            'ad_1' => 'required|string|max:255',
+            'ad_2' => 'nullable|string|max:255',
+            'city' => 'required|string|max:100',
+            'state' => 'required|string|max:100',
+            'pan' => 'nullable|string|max:10',
+            'gst' => 'nullable|string|max:15',
+            'no_vac' => 'required|integer|min:0',
+            'no_veh' => 'required|integer|min:0',
+            'no_driver' => 'required|integer|min:0',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
-    $corprate = Corporate::where('type', 'corporate')
-        ->where('id', $id)
-        ->first();
-    
-    if (!$corprate) {
-        return redirect()->route('admin.corprate.corprate_list')
-            ->with('error', 'Corporate profile not found');
-    }
+        $corprate = Corporate::where('type', 'corporate')
+            ->where('id', $id)
+            ->first();
 
-    // Prepare update data
-    $updateData = [
-        'name' => $request->name,
-        'c_name' => $request->c_name,
-        'c_num' => $request->c_num,
-        'a_num' => $request->a_num,
-        'c_mail' => $request->c_mail,
-        'ad_1' => $request->ad_1,
-        'ad_2' => $request->ad_2,
-        'city' => $request->city,
-        'state' => $request->state,
-        'pan' => $request->pan,
-        'gst' => $request->gst,
-        'no_vac' => $request->no_vac,
-        'no_veh' => $request->no_veh,
-        'no_driver' => $request->no_driver,
-    ];
-
-    // Handle logo upload
-    if ($request->hasFile('logo')) {
-        // Delete old logo if exists
-        if ($corprate->logo && file_exists(public_path($corprate->logo))) {
-            unlink(public_path($corprate->logo));
+        if (!$corprate) {
+            return redirect()->route('admin.corprate.corprate_list')
+                ->with('error', 'Corporate profile not found');
         }
-        
-        $logo = $request->file('logo');
-        $logoName = time() . '_' . $logo->getClientOriginalName();
-        $logo->move(public_path('image/corporate/logo'), $logoName);
-        $updateData['logo'] = 'image/corporate/logo/' . $logoName;
+
+        // Prepare update data
+        $updateData = [
+            'name' => $request->name,
+            'c_name' => $request->c_name,
+            'c_num' => $request->c_num,
+            'a_num' => $request->a_num,
+            'c_mail' => $request->c_mail,
+            'ad_1' => $request->ad_1,
+            'ad_2' => $request->ad_2,
+            'city' => $request->city,
+            'state' => $request->state,
+            'pan' => $request->pan,
+            'gst' => $request->gst,
+            'no_vac' => $request->no_vac,
+            'no_veh' => $request->no_veh,
+            'no_driver' => $request->no_driver,
+        ];
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($corprate->logo && file_exists(public_path($corprate->logo))) {
+                unlink(public_path($corprate->logo));
+            }
+
+            $logo = $request->file('logo');
+            $logoName = time() . '_' . $logo->getClientOriginalName();
+            $logo->move(public_path('image/corporate/logo'), $logoName);
+            $updateData['logo'] = 'image/corporate/logo/' . $logoName;
+        }
+
+        // Update corporate details
+        $corprate->update($updateData);
+
+        return redirect()->route('admin.corprate.corprate_profile', $id)
+            ->with('success', 'Corporate profile updated successfully');
     }
-
-    // Update corporate details
-    $corprate->update($updateData);
-
-    return redirect()->route('admin.corprate.corprate_profile', $id)
-        ->with('success', 'Corporate profile updated successfully');
-}
 
 
 
@@ -363,47 +363,47 @@ public function toggleActiveStatus(Request $request, $id)
         return view('admin.corprate.owner_profile', compact('corprate', 'trips', 'subs', 'referrals', 'rem'));
     }
 
-public function update_owner_profile(Request $request, $id)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'contact' => 'required|string|max:20',
-        'gender' => 'required|string|max:10',
-        'ad_1' => 'required|string|max:255',
-        'ad_2' => 'nullable|string|max:255',
-        'city' => 'required|string|max:100',
-        'state' => 'required|string|max:100',
-        'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-    ]);
+    public function update_owner_profile(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'contact' => 'required|string|max:20',
+            'gender' => 'required|string|max:10',
+            'ad_1' => 'required|string|max:255',
+            'ad_2' => 'nullable|string|max:255',
+            'city' => 'required|string|max:100',
+            'state' => 'required|string|max:100',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
 
-    $corporate = Corporate::findOrFail($id);
-    
-    // Handle logo upload
-    if ($request->hasFile('logo')) {
-        // Delete old logo if exists
-        if ($corporate->logo && file_exists(public_path($corporate->logo))) {
-            unlink(public_path($corporate->logo));
+        $corporate = Corporate::findOrFail($id);
+
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            // Delete old logo if exists
+            if ($corporate->logo && file_exists(public_path($corporate->logo))) {
+                unlink(public_path($corporate->logo));
+            }
+
+            $logo = $request->file('logo');
+            $logoName = time() . '_' . $logo->getClientOriginalName();
+            $logo->move(public_path('image/corporate/logo'), $logoName);
+            $corporate->logo = 'image/corporate/logo/' . $logoName;
         }
-        
-        $logo = $request->file('logo');
-        $logoName = time() . '_' . $logo->getClientOriginalName();
-        $logo->move(public_path('image/corporate/logo'), $logoName);
-        $corporate->logo = 'image/corporate/logo/' . $logoName;
+
+        // Update other fields
+        $corporate->name = $request->name;
+        $corporate->contact = $request->contact;
+        $corporate->gender = $request->gender;
+        $corporate->ad_1 = $request->ad_1;
+        $corporate->ad_2 = $request->ad_2;
+        $corporate->city = $request->city;
+        $corporate->state = $request->state;
+
+        $corporate->save();
+
+        return redirect()->back()->with('success', 'Profile updated successfully!');
     }
-
-    // Update other fields
-    $corporate->name = $request->name;
-    $corporate->contact = $request->contact;
-    $corporate->gender = $request->gender;
-    $corporate->ad_1 = $request->ad_1;
-    $corporate->ad_2 = $request->ad_2;
-    $corporate->city = $request->city;
-    $corporate->state = $request->state;
-    
-    $corporate->save();
-
-    return redirect()->back()->with('success', 'Profile updated successfully!');
-}
 
 
 
@@ -454,306 +454,312 @@ public function update_owner_profile(Request $request, $id)
 
 
 
-public function create()
-{
-    // Get all active districts from location_active and join with district table to get district names
-    $districts = DB::table('location_active')
-        ->leftJoin('district', 'location_active.district', '=', 'district.id')
-        ->where('location_active.status', 'active')
-        ->select('location_active.district as district_id', 'district.district as district_name')
-        ->distinct('location_active.district')
-        ->orderBy('district.district')
-        ->get();
-    
-    return view('admin.corprate.create', compact('districts'));
-}
+    public function create()
+    {
+        // Get all active districts from location_active and join with district table to get district names
+        $districts = DB::table('location_active')
+            ->leftJoin('district', 'location_active.district', '=', 'district.id')
+            ->where('location_active.status', 'active')
+            ->select('location_active.district as district_id', 'district.district as district_name')
+            ->distinct('location_active.district')
+            ->orderBy('district.district')
+            ->get();
 
-public function get_locations_by_district(Request $request)
-{
-    $districtId = $request->district;
-    
-    // Get locations for this district ID
-    $locations = DB::table('location_active')
-        ->where('district', $districtId)
-        ->where('status', 'active')
-        ->select('id', 'location')
-        ->orderBy('location')
-        ->get();
-    
-    return response()->json($locations);
-}
-
-public function store(Request $request)
-{
-    // Validate all fields
-    $request->validate([
-        // Basic Details
-        'c_type' => 'required|string|max:255',
-        'c_name' => 'required|string|max:255',
-        'c_contact' => 'required|string|max:10|min:10|unique:corporate,contact',
-        'c_email' => 'required|email|max:255',
-        'c_district' => 'required',
-        'c_loc' => 'required',
-        'gender' => 'nullable|string|max:50',
-        
-        // Contact Person Details
-        'full_name' => 'required|string|max:255',
-        'full_contact' => 'required|string|max:10|min:10',
-        'alt_contact' => 'nullable|string|max:10|min:10',
-        'f_mail' => 'required|email|max:255',
-        
-        // Address Details
-        'ad_1' => 'required|string|max:255',
-        'city' => 'required|string|max:100',
-        'state' => 'required|string|max:100',
-        'pin_code' => 'required|digits:6',
-        
-        // Business Details
-        'pan' => 'nullable|string|max:10|min:10',
-        'gst' => 'nullable|string|max:15|min:15',
-        'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-        
-        // Asset Details
-        'no_vehicle' => 'required|integer|min:1',
-        'no_drivers' => 'required|integer|min:1',
-        'no_vacancies' => 'required|integer|min:0'
-    ]);
-
-    // Validate that the selected location belongs to the selected district
-    $locationExists = DB::table('location_active')
-        ->where('id', $request->c_loc)
-        ->where('district', $request->c_district)
-        ->where('status', 'active')
-        ->exists();
-    
-    if (!$locationExists) {
-        return redirect()->back()->withErrors(['Invalid district/location combination selected'])->withInput();
+        return view('admin.corprate.create', compact('districts'));
     }
 
-    // Start database transaction
-    DB::beginTransaction();
+    public function get_locations_by_district(Request $request)
+    {
+        $districtId = $request->district;
 
-    try {
-        // Prepare data for insertion
-        $data = [
-            'type' => 'corporate',
-            'name' => $request->c_name,
-            'c_type' => $request->c_type,
-            'location' => $request->c_loc,
-            'district' => $request->c_district, // Store the district ID
-            'contact' => $request->c_contact,
-            'mail' => $request->c_email,
-            'gender' => $request->gender,
-            
+        // Get locations for this district ID
+        $locations = DB::table('location_active')
+            ->where('district', $districtId)
+            ->where('status', 'active')
+            ->select('id', 'location')
+            ->orderBy('location')
+            ->get();
+
+        return response()->json($locations);
+    }
+
+    public function store(Request $request)
+    {
+        // Validate all fields
+        $request->validate([
+            // Basic Details
+            'c_type' => 'required|string|max:255',
+            'c_name' => 'required|string|max:255',
+            'c_contact' => 'required|string|max:10|min:10|unique:corporate,contact',
+            'c_email' => 'required|email|max:255',
+            'c_district' => 'required',
+            'c_loc' => 'required',
+            'gender' => 'nullable|string|max:50',
+
             // Contact Person Details
-            'c_name' => $request->full_name,
-            'c_num' => $request->full_contact,
-            'a_num' => $request->alt_contact,
-            'c_mail' => $request->f_mail,
-            
-            // Address Details
-            'ad_1' => $request->ad_1,
-            'city' => $request->city,
-            'state' => $request->state,
-            'pin' => $request->pin_code,
-            
-            // Business Details
-            'pan' => strtoupper($request->pan),
-            'gst' => strtoupper($request->gst),
-            
-            // Asset Details
-            'no_veh' => $request->no_vehicle,
-            'no_driver' => $request->no_drivers,
-            'no_vac' => $request->no_vacancies,
-            
-            // Default Values
-            'ref_code' => '123',
-            'subscription' => 'yes',
-            
-            'c_by' => auth()->id(), // Admin who created this record
-            'created_at' => now(),
-            'updated_at' => now()
-        ];
+            'full_name' => 'required|string|max:255',
+            'full_contact' => 'required|string|max:10|min:10',
+            'alt_contact' => 'nullable|string|max:10|min:10',
+            'f_mail' => 'required|email|max:255',
 
-        // Handle logo upload
-        if ($request->hasFile('logo')) {
-            $image = $request->file('logo');
-            $filename = time() . '_' . $image->getClientOriginalName();
-            
-            // Create directory if it doesn't exist
-            $uploadPath = public_path('image/corporate/logo');
-            if (!file_exists($uploadPath)) {
-                mkdir($uploadPath, 0777, true);
-            }
-            
-            $image->move($uploadPath, $filename);
-            $data['logo'] = 'public/image/corporate/logo/' . $filename;
+            // Address Details
+            'ad_1' => 'required|string|max:255',
+            'city' => 'required|string|max:100',
+            'state' => 'required|string|max:100',
+            'pin_code' => 'required|digits:6',
+
+            // Business Details
+            'pan' => 'nullable|string|max:10|min:10',
+            'gst' => 'nullable|string|max:15|min:15',
+            'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+
+            // Asset Details
+            'no_vehicle' => 'required|integer|min:1',
+            'no_drivers' => 'required|integer|min:1',
+            'no_vacancies' => 'required|integer|min:0'
+        ]);
+
+        // Validate that the selected location belongs to the selected district
+        $locationExists = DB::table('location_active')
+            ->where('id', $request->c_loc)
+            ->where('district', $request->c_district)
+            ->where('status', 'active')
+            ->exists();
+
+        if (!$locationExists) {
+            return redirect()->back()->withErrors(['Invalid district/location combination selected'])->withInput();
         }
 
-        // Insert the corporate data
-        $corporate = Corporate::create($data);
+        // Start database transaction
+        DB::beginTransaction();
 
-        if ($corporate) {
-            // Create default subscription for 6 months
-            $subscriptionData = [
-                'f_id' => $corporate->id,
+        try {
+            // Prepare data for insertion
+            $data = [
                 'type' => 'corporate',
-                'plan' => '6',
-                't_id' => null,
-                'amount' => 15000,
-                'paid_sts' => 'success',
-                'exp_date' => Carbon::now()->addMonths(6),
-                'status' => 'active',
-                'c_by' => auth()->id(),
+                'name' => $request->c_name,
+                'c_type' => $request->c_type,
+                'location' => $request->c_loc,
+                'district' => $request->c_district, // Store the district ID
+                'contact' => $request->c_contact,
+                'mail' => $request->c_email,
+                'gender' => $request->gender,
+
+                // Contact Person Details
+                'c_name' => $request->full_name,
+                'c_num' => $request->full_contact,
+                'a_num' => $request->alt_contact,
+                'c_mail' => $request->f_mail,
+
+                // Address Details
+                'ad_1' => $request->ad_1,
+                'city' => $request->city,
+                'state' => $request->state,
+                'pin' => $request->pin_code,
+
+                // Business Details
+                'pan' => strtoupper($request->pan),
+                'gst' => strtoupper($request->gst),
+
+                // Asset Details
+                'no_veh' => $request->no_vehicle,
+                'no_driver' => $request->no_drivers,
+                'no_vac' => $request->no_vacancies,
+
+                // Default Values
+                'ref_code' => '123',
+                'subscription' => 'yes',
+
+                'c_by' => auth()->id(), // Admin who created this record
                 'created_at' => now(),
                 'updated_at' => now()
             ];
 
-            $subscription = Subscription::create($subscriptionData);
+            // Handle logo upload
+            if ($request->hasFile('logo')) {
+                $image = $request->file('logo');
+                $filename = time() . '_' . $image->getClientOriginalName();
 
-            if ($subscription) {
-                // Commit the transaction
-                DB::commit();
+                // Create directory if it doesn't exist
+                $uploadPath = public_path('image/corporate/logo');
+                if (!file_exists($uploadPath)) {
+                    mkdir($uploadPath, 0777, true);
+                }
 
-                Log::info("Corporate and Subscription created by admin", [
-                    'corporate_id' => $corporate->id,
-                    'corporate_name' => $corporate->name,
-                    'subscription_id' => $subscription->id,
-                    'exp_date' => $subscription->exp_date->format('Y-m-d'),
-                    'created_by' => auth()->id()
-                ]);
+                $image->move($uploadPath, $filename);
+                $data['logo'] = 'public/image/corporate/logo/' . $filename;
+            }
 
-                return redirect()->route('admin.corprate.index')->with('success', 'Corporate added successfully with 6-month subscription!');
+            // Insert the corporate data
+            $corporate = Corporate::create($data);
+
+            if ($corporate) {
+                // Create default subscription for 6 months
+                $subscriptionData = [
+                    'f_id' => $corporate->id,
+                    'type' => 'corporate',
+                    'plan' => '6',
+                    't_id' => null,
+                    'amount' => 15000,
+                    'paid_sts' => 'success',
+                    'exp_date' => Carbon::now()->addMonths(6),
+                    'status' => 'active',
+                    'c_by' => auth()->id(),
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ];
+
+                $subscription = Subscription::create($subscriptionData);
+
+                if ($subscription) {
+                    // Commit the transaction
+                    DB::commit();
+
+                    Log::info("Corporate and Subscription created by admin", [
+                        'corporate_id' => $corporate->id,
+                        'corporate_name' => $corporate->name,
+                        'subscription_id' => $subscription->id,
+                        'exp_date' => $subscription->exp_date->format('Y-m-d'),
+                        'created_by' => auth()->id()
+                    ]);
+
+                    return redirect()->route('admin.corprate.index')->with('success', 'Corporate added successfully with 6-month subscription!');
+                } else {
+                    DB::rollback();
+                    return redirect()->back()->withErrors(['Failed to create subscription'])->withInput();
+                }
             } else {
                 DB::rollback();
-                return redirect()->back()->withErrors(['Failed to create subscription'])->withInput();
+                return redirect()->back()->withErrors(['Failed to save corporate details'])->withInput();
             }
-        } else {
+        } catch (\Exception $e) {
             DB::rollback();
-            return redirect()->back()->withErrors(['Failed to save corporate details'])->withInput();
-        }
 
-    } catch (\Exception $e) {
-        DB::rollback();
-        
-        Log::error("Error creating corporate and subscription", [
-            'error' => $e->getMessage(),
-            'file' => $e->getFile(),
-            'line' => $e->getLine()
-        ]);
-
-        return redirect()->back()
-            ->withErrors(['An error occurred while saving corporate details. Please try again.'])
-            ->withInput();
-    }
-}
-
-
-public function index()
-{
-    // Get all corporate records created by admin (c_by = 1) - both active and inactive
-    $corporates = DB::table('corporate')
-        ->where('c_by', 1)
-        ->orderBy('created_at', 'desc')
-        ->get();
-
-    return view('admin.corprate.index', compact('corporates'));
-}
-
-public function toggleStatus1($id)
-{
-    try {
-        $corporate = DB::table('corporate')->where('id', $id)->first();
-
-        if (!$corporate) {
-            return response()->json(['success' => false, 'message' => 'Corporate not found']);
-        }
-
-        $newStatus = ($corporate->active_status === 'active') ? 'inactive' : 'active';
-
-        DB::table('corporate')
-            ->where('id', $id)
-            ->update([
-                'active_status' => $newStatus,
-                'updated_at'    => now()
+            Log::error("Error creating corporate and subscription", [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
             ]);
 
-        return response()->json(['success' => true, 'message' => 'Status updated successfully']);
-    } catch (\Exception $e) {
-        return response()->json(['success' => false, 'message' => 'Error updating status']);
-    }
-}
-public function exportCorporateData(Request $request)
-{
-    try {
-        $type = $request->query('type');
-        $status = $request->query('status', 'approved'); // approved or rejected
-        
-        // Build query - only from corporate table
-        $query = DB::table('corporate')
-            ->where('status', $status);
-        
-        // Apply type filter if provided (corporate or owner)
-        if ($type && in_array($type, ['corporate', 'owner'])) {
-            $query->where('type', $type);
+            return redirect()->back()
+                ->withErrors(['An error occurred while saving corporate details. Please try again.'])
+                ->withInput();
         }
-        
-        // Get all corporate data
-        $corporates = $query->select(
-            'id',
-            'type',
-            'name',
-            'gender',
-            'location',
-            'district',
-            'ref_code',
-            'c_type',
-            'c_name',
-            'contact',
-            'mail',
-            'c_num',
-            'a_num',
-            'c_mail',
-            'ad_1',
-            'ad_2',
-            'city',
-            'state',
-            'pin',
-            'pan',
-            'gst',
-            'no_veh',
-            'no_driver',
-            'no_vac',
-            'subscription',
-            'logo',
-            'status',
-            'active_status',
-            'created_at',
-            'updated_at'
-        )->get()->map(function ($corporate) {
-            // Get location name if location_active table exists
-            $locationName = DB::table('location_active')
-                ->where('id', $corporate->location)
-                ->value('location');
-            
-            $corporate->location_name = $locationName ?? 'N/A';
-            
-            return $corporate;
-        });
-        
-        return response()->json([
-            'success' => true,
-            'data' => $corporates
-        ]);
-        
-    } catch (\Exception $e) {
-        \Log::error('Export Corporate Data Error: ' . $e->getMessage());
-        
-        return response()->json([
-            'success' => false,
-            'message' => 'Failed to fetch corporate data',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
+
+
+    public function index()
+    {
+        // Get all corporate records created by admin (c_by = 1) - both active and inactive
+        $corporates = DB::table('corporate')
+            ->where('c_by', 1)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('admin.corprate.index', compact('corporates'));
+    }
+
+    public function toggleStatus1($id)
+    {
+        try {
+            $corporate = DB::table('corporate')->where('id', $id)->first();
+
+            if (!$corporate) {
+                return response()->json(['success' => false, 'message' => 'Corporate not found']);
+            }
+
+            $newStatus = ($corporate->active_status === 'active') ? 'inactive' : 'active';
+
+            DB::table('corporate')
+                ->where('id', $id)
+                ->update([
+                    'active_status' => $newStatus,
+                    'updated_at'    => now()
+                ]);
+
+            return response()->json(['success' => true, 'message' => 'Status updated successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Error updating status']);
+        }
+    }
+    public function exportCorporateData(Request $request)
+    {
+        try {
+            $type = $request->query('type');
+            $status = $request->query('status', 'approved'); // approved or rejected
+
+            // Build query - only from corporate table
+            $query = DB::table('corporate')
+                ->where('status', $status);
+
+            // Apply type filter if provided (corporate or owner)
+            if ($type && in_array($type, ['corporate', 'owner'])) {
+                $query->where('type', $type);
+            }
+
+            // Get all corporate data
+            $corporates = $query->select(
+                'id',
+                'type',
+                'name',
+                'gender',
+                'location',
+                'district',
+                'ref_code',
+                'c_type',
+                'c_name',
+                'contact',
+                'mail',
+                'c_num',
+                'a_num',
+                'c_mail',
+                'ad_1',
+                'ad_2',
+                'city',
+                'state',
+                'pin',
+                'pan',
+                'gst',
+                'no_veh',
+                'no_driver',
+                'no_vac',
+                'subscription',
+                'logo',
+                'status',
+                'active_status',
+                'created_at',
+                'updated_at'
+            )->get()->map(function ($corporate) {
+                // Get location name if location_active table exists
+                $locationName = DB::table('location_active')
+                    ->where('id', $corporate->location)
+                    ->value('location');
+
+                $corporate->location_name = $locationName ?? 'N/A';
+
+                return $corporate;
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $corporates
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Export Corporate Data Error: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to fetch corporate data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+    public function corprateDelete($id)
+    {
+
+        $deleteCorp = Corporate::findOrFail($id);
+        $deleteCorp->delete();
+
+        return back()->with('success', 'Driver deleted successfully.');
+    }
 }

@@ -134,7 +134,6 @@ class CandidateController extends Controller
             'allCov',
             'type'
         ));
-
     }
 
 
@@ -479,7 +478,6 @@ class CandidateController extends Controller
             $changeRequest->save();
 
             return redirect()->back()->with('success', 'Driver type updated successfully.');
-
         } elseif ($request->action === 'reject') {
             // Reject request → mark request as rejected
             $changeRequest->request_status = 'rejected';
@@ -602,7 +600,6 @@ class CandidateController extends Controller
                 'success' => true,
                 'data' => $drivers
             ]);
-
         } catch (\Exception $e) {
             \Log::error('Export Driver Data Error: ' . $e->getMessage());
 
@@ -612,5 +609,14 @@ class CandidateController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+
+    public function deleteCandidate($id)
+    {
+        $driver = Driver::findOrFail($id);
+        $driver->delete();
+
+        return back()->with('success', 'Driver deleted successfully.');
     }
 }
