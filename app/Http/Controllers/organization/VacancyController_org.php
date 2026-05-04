@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Organization;
+namespace App\Http\Controllers\organization;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -22,9 +22,6 @@ use Illuminate\Support\Carbon;
 
 class VacancyController_org extends Controller
 {
-
-
-
     public function vacancy()
     {
         // Get the current corporate user ID
@@ -67,10 +64,6 @@ class VacancyController_org extends Controller
         //  $jobs = $permanentJobs;
 
         $jobs = $permanentJobs->concat($actingJobs)->sortByDesc('created_at')->values();
-        ;
-
-
-
 
         // dd($jobs->toArray());
 
@@ -85,7 +78,6 @@ class VacancyController_org extends Controller
     {
         return view('organization.vacancy.add_vacancy');
     }
-
 
 
     public function fulltime_list($id)
@@ -270,19 +262,13 @@ class VacancyController_org extends Controller
 
     public function acting_list($id)
     {
-        // $jobs = Trip::where('title', 'Acting Driver')->get();
+        dd('Method called!', 'ID: ' . $id); // ← Add this as THE FIRST LINE
 
         $selectedJob = Trip::with('corporate')->findOrFail($id);
 
         $selectedJob->t_code = TripApplied::where('trip_id', $selectedJob->id)
             ->whereNotNull('trip_code')
-            ->value('trip_code'); // returns a string or null
-
-        // $tripCodes = TripApplied::where('trip_id', $selectedJob->id)->whereNotNull('trip_code')->pluck('trip_code');
-
-        // $selectedJob->t_code = $tripCodes->isNotEmpty() ? $tripCodes : null;
-
-        // dd($selectedJob);
+            ->value('trip_code');
 
         $appliedListActing = TripApplied::where('trip_id', $id)
             ->whereHas('driver', function ($query) {
@@ -292,50 +278,77 @@ class VacancyController_org extends Controller
             ->get()
             ->map(function ($apply) use ($selectedJob) {
 
-                $loc = DB::table('location_active')->where('id', $apply->driver->location)->value('location');
+                try {
+                    $loc = DB::table('location_active')->where('id', $apply->driver->location)->value('location');
 
-                $existingTrips = TripApplied::with(['trip'])->where('d_id', $apply->d_id)
-                    ->whereIn('status', ['Hired', 'Start'])
-                    ->get();
+                    $existingTrips = TripApplied::with(['trip'])->where('d_id', $apply->d_id)
+                        ->whereIn('status', ['Hired', 'Start'])
+                        ->get();
 
+                    $hasConflict = $existingTrips->contains(function ($extrips) use ($selectedJob) {
 
-                $hasConflict = $existingTrips->contains(function ($extrips) use ($selectedJob) {
+                        $existingStart = Carbon::parse($extrips->trip->st_date)->toDateString();
+                        $existingEnd = Carbon::parse($extrips->trip->end_date)->toDateString();
 
-                    // log::info($trips);
-    
-                    $existingStart = Carbon::parse($extrips->trip->st_date)->toDateString();
-                    $existingEnd = Carbon::parse($extrips->trip->end_date)->toDateString();
+                        $newStart = Carbon::parse($selectedJob->st_date)->toDateString();
+                        $newEnd = Carbon::parse($selectedJob->end_date)->toDateString();
 
-                    $newStart = Carbon::parse($selectedJob->st_date)->toDateString();
-                    $newEnd = Carbon::parse($selectedJob->end_date)->toDateString();
+                        return $existingStart <= $newEnd && $existingEnd >= $newStart;
+                    });
 
-                    return $existingStart <= $newEnd && $existingEnd >= $newStart;
-               });
-
-
-                // $t_code = TripApplied::where('trip_id',$apply->)
-                return [
-                    'id' => $apply->id,
-                    'created_at' => $apply->created_at->format('d-m-Y'),
-                    'driver_name' => $apply->driver->name ?? '-',
-                    'driver_phone' => $apply->driver->phone ?? '-',
-                    'license_type' => $apply->driver->license->cov ?? '-', // <-- new column
-                    'location' => $loc ?? '-',
-                    'salary_per_day' => $apply->salary_perday ?? '-',
-                    'wait_charge' => $apply->wait_charge ?? '-',
-                    'act_status' => $apply->status ?? '-',
-                    'food' => $apply->food ?? '-',
-                    'driver_conflict' => $hasConflict,
-                    'driver' => [
-                        'id' => $apply->driver->id ?? null,
-                    ],
-                ];
+                    return [
+                        'id' => $apply->id,
+                        'created_at' => $apply->created_at->format('d-m-Y'),
+                        'driver_name' => $apply->driver->name ?? '-',
+                        'driver_phone' => $apply->driver->phone ?? '-',
+                        'license_type' => $apply->driver->license->cov ?? '-',
+                        'location' => $loc ?? '-',
+                        'salary_per_day' => $apply->salary_perday ?? '-',
+                        'wait_charge' => $apply->wait_charge ?? '-',
+                        'act_status' => $apply->status ?? '-',
+                        'food' => $apply->food ?? '-',
+                        'driver_conflict' => $hasConflict,
+                        'driver' => [
+                            'id' => $apply->driver->id ?? null,
+                        ],
+                    ];
+                } catch (\Exception $e) {
+                    \Log::error('Error in acting_list map: ' . $e->getMessage());
+                    \Log::error('Apply ID: ' . $apply->id);
+                    dd('Error in map function', $e->getMessage(), $apply);
+                }
             });
 
-        // dd($appliedListActing);
+        dd('After map', $appliedListActing->toArray()); // Check data after mapping
+
         return view('organization.vacancy.acting_list', compact('selectedJob', 'appliedListActing'));
     }
 
+
+
+
+
+    // public function acting_list($id)
+    // {
+    //     dd('Method called!', 'ID: ' . $id); // ← Add this as THE FIRST LINE
+    //     $selectedJob = Trip::with('corporate')->findOrFail($id);
+    //     dd('Step 1: selectedJob loaded', $selectedJob->toArray());
+
+    //     $selectedJob->t_code = TripApplied::where('trip_id', $selectedJob->id)
+    //         ->whereNotNull('trip_code')
+    //         ->value('trip_code');
+
+    //     $rawData = TripApplied::where('trip_id', $id)
+    //         ->whereHas('driver', function ($query) {
+    //             $query->where('type', 'acting');
+    //         })
+    //         ->with(['trip', 'driver.license'])
+    //         ->get();
+
+    //     dd('Step 2: Raw data retrieved', $rawData->toArray());
+
+    //     // The rest will execute after you comment out the dd above
+    // }
     public function updateActingStatus($id)
     {
         // Log::info('Updating status for ID: ' . $id, request()->all());
@@ -411,13 +424,8 @@ class VacancyController_org extends Controller
         }
     }
 
-
-
-
     public function add_vacancy_store(Request $request)
     {
-        // Log::info('Form submission received:', $request->all());
-
         if ($request->job_type === 'Full Time') {
             // Validation for Full Time jobs
             $request->validate([
@@ -456,18 +464,12 @@ class VacancyController_org extends Controller
                 'c_by' => auth('corporate')->user()->id
             ]);
 
-            // $per_driver = Driver::where('type', 'permanent')->where('status', 'approved')->where('location', auth('corporate')->user()->location)->pluck('id')->toArray();
-
-            // // log::info($per_driver);
-
-            // if (count($per_driver) != 0) {
-            //     Trip_notify::dispatch($per_driver, $per_job, 'job_posted', auth('corporate')->user()->id);
-            // }
+            // Notification will be sent after admin approval in handleApproval() method
 
             return redirect()->route('organization.vacancy.vacancy_list')
-                ->with('success', 'Full-time job created successfully');
+                ->with('success', 'Full-time job created successfully and sent for admin approval');
+
         } elseif ($request->job_type === 'Acting') {
-            // Updated validation - removed driver_type from required (it's not in your form data)
 
             try {
                 $validated = $request->validate([
@@ -477,7 +479,7 @@ class VacancyController_org extends Controller
                     'to_address' => 'required',
                     'alternate_number' => 'required',
                     'start_date' => 'required|date',
-                    'end_date' => 'required|date|after_or_equal:start_date', // This will fail with your current dates
+                    'end_date' => 'required|date|after_or_equal:start_date',
                     'start_time' => 'required',
                     'contact_number' => 'required',
                     'no_of_days' => 'required|numeric|min:1',
@@ -487,20 +489,14 @@ class VacancyController_org extends Controller
                     'd_type' => 'required',
                     'st_dist' => 'required',
                     'end_dist' => 'required',
-
                 ]);
             } catch (ValidationException $e) {
-                // Log validation errors
                 Log::error('Validation failed', [
                     'errors' => $e->errors(),
                     'input' => $request->all(),
                 ]);
-
-                // Optionally rethrow or handle response
                 throw $e;
             }
-
-
 
             try {
                 $startCoords = explode(',', $validated['start_coordinates']);
@@ -544,9 +540,8 @@ class VacancyController_org extends Controller
                     'c_by' => auth('corporate')->user()->id ?? auth('sanctum')->user()->id
                 ]);
 
+                // Store nearby locations for later use when admin approves
                 if ($trip) {
-
-                    // $locationParts = explode(',', $location->cord);
                     $lat1 = $startCoords[0];
                     $lon1 = $startCoords[1];
                     $radius = 50;
@@ -559,10 +554,6 @@ class VacancyController_org extends Controller
                     $nearbyLocations = [];
 
                     foreach ($all_loc as $loc) {
-                        // if (!$loc->cord) {
-                        //     continue;
-                        // }
-
                         $cordParts = explode(',', $loc->cord);
                         if (count($cordParts) !== 2) {
                             continue;
@@ -574,36 +565,27 @@ class VacancyController_org extends Controller
                         $distance = (new Api_owner)->calculateDistance($lat1, $lon1, $lat2, $lon2);
 
                         if ($distance <= $radius) {
-                            $loc->distance = round($distance, 2); // optional: show how far it is
+                            $loc->distance = round($distance, 2);
                             $nearbyLocations[] = $loc;
                         }
                     }
 
+                    // Store nearby location IDs for notification dispatch after approval
                     $search_loc = collect($nearbyLocations)->pluck('id')->toArray();
 
-                    $d_type = $trip->d_type; // could be 'male', 'female', or 'both'
+                    // Optional: Store this in a separate table or in trip metadata
+                    // so handleApproval() can use it later
+                    // For now, we'll recalculate it in handleApproval()
 
-                    $driverQuery = Driver::where('type', 'acting')
-                        ->where('status', '!=', 'pending')
-                        ->whereIn('location', $search_loc);
+                    Log::info('Trip created successfully with ID: ' . $trip->id . ' and d_type: ' . $trip->d_type);
+                    Log::info('Nearby locations found: ' . count($search_loc) . ' locations within ' . $radius . 'km radius');
 
-                    if ($d_type !== 'both') {
-                        $driverQuery->where('gender', $d_type); // Replace 'gender' with the correct column
-                    }
-
-                    $driver = $driverQuery->pluck('id')->toArray();
-
-                    // $driver = Driver::where('type', 'acting')->where('status', '!=', 'pending')->whereIn('location', $search_loc)->pluck('id')->toArray();
-
-                    if (count($driver) != 0) {
-                        Trip_notify::dispatch($driver, $trip->id, 'trip_posted', auth('corporate')->user()->id ?? auth('sanctum')->user()->id);
-                    }
+                    // ✅ REMOVED: Notification dispatch - will happen after admin approval
                 }
 
-                Log::info('Trip created successfully with ID: ' . $trip->id . ' and d_type: ' . $trip->d_type);
-
                 return redirect()->route('organization.vacancy.vacancy_list')
-                    ->with('success', 'Acting job created successfully');
+                    ->with('success', 'Acting job created successfully and sent for admin approval');
+
             } catch (\Exception $e) {
                 Log::error('Trip creation failed: ' . $e->getMessage());
                 Log::error('Stack trace: ' . $e->getTraceAsString());

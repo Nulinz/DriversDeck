@@ -5,7 +5,6 @@ namespace App\Services;
 use Google\Client;
 use Google\Service\FirebaseCloudMessaging;
 use Google\Service\FirebaseCloudMessaging\Message;
-use Google\Service\FirebaseCloudMessaging\Notification;
 use Google\Service\FirebaseCloudMessaging\AndroidConfig;
 use Google\Service\FirebaseCloudMessaging\ApnsConfig;
 use Google\Service\FirebaseCloudMessaging\SendMessageRequest;
@@ -13,33 +12,43 @@ use Illuminate\Support\Facades\Log;
 
 class Fcm
 {
-    protected $client;
-    protected $messaging;
+    protected Client $client;
+    protected FirebaseCloudMessaging $messaging;
+    protected string $projectId;
 
     public function __construct()
     {
-        // Set up the Google client with the service account credentials
-        $this->client = new Client();
-        $this->client->setAuthConfig(storage_path('app/firebase.json'));
-        $this->client->addScope(FirebaseCloudMessaging::CLOUD_PLATFORM);
+        $serviceAccountPath = storage_path('app/firebase.json');
 
-        // Initialize the Firebase Cloud Messaging service
+        if (!file_exists($serviceAccountPath)) {
+            throw new \Exception('firebase.json not found at: ' . $serviceAccountPath);
+        }
+
+        $serviceAccount = json_decode(file_get_contents($serviceAccountPath), true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception('Invalid JSON in firebase.json: ' . json_last_error_msg());
+        }
+
+        if (empty($serviceAccount['project_id'])) {
+            throw new \Exception('project_id missing in firebase.json');
+        }
+
+        $this->projectId = $serviceAccount['project_id'];
+
+        $this->client = new Client();
+        $this->client->setAuthConfig($serviceAccountPath);
+        $this->client->addScope('https://www.googleapis.com/auth/firebase.messaging');
+
         $this->messaging = new FirebaseCloudMessaging($this->client);
 
-        Log::info('Fcm service initialized');
+        Log::info('✅ FCM initialized for project: ' . $this->projectId);
     }
 
-    public function send_notify($token, $title, $body)
+    public function send_notify(string $token, string $title, string $body, string $type = 'default'): array
     {
-        Log::info("Preparing to send notification to token: $token");
-
-        // Log project ID env value
-        $projectId = env('FIREBASE_PROJECT_ID');
-        Log::info("Firebase Project ID: $projectId");
-
-        if (empty($projectId)) {
-            Log::error('Firebase Project ID is not set in environment variables.');
-            return ['error' => 'Firebase Project ID is missing'];
+        if (empty($token)) {
+            return ['status' => false, 'error' => 'No FCM token, notification skipped'];
         }
 
         // Verify projects_messages property exists
@@ -101,17 +110,56 @@ class Fcm
         ]);
 
         try {
-            Log::info('Sending FCM message...');
-            $response = $this->messaging->projects_messages->send(
-                'projects/' . $projectId,
-                $sendRequest
-            );
-            Log::info("✅ FCM message sent successfully to token: $token, response: " . json_encode($response));
+            $message = new Message([
+                'token' => $token,
+                'notification' => [
+                    'title' => $title,
+                    'body' => $body,
+                ],
+                'data' => [
+                    'type' => $type,
+                    'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+                ],
+                'android' => new AndroidConfig([
+                    'priority' => 'high',
+                    'notification' => ['sound' => 'default'],
+                ]),
+                'apns' => new ApnsConfig([
+                    'payload' => ['aps' => ['sound' => 'default']],
+                ]),
+            ]);
 
-            return response()->json(['status' => 'success']);
+            $request = new SendMessageRequest(['message' => $message]);
+
+            $this->messaging
+                ->projects_messages
+                ->send('projects/' . $this->projectId, $request);
+
+            return ['status' => true, 'message' => 'Notification sent'];
+
+        } catch (\Google\Service\Exception $e) {
+            // Extract error code from the response body (it's in details array)
+            $errorCode = $this->extractErrorCode($e->getMessage());
+
+            // Don't log UNREGISTERED errors - they're handled silently
+            if ($errorCode !== 'UNREGISTERED') {
+                Log::error('🔥 FCM error', [
+                    'title' => $title,
+                    'body' => $body,
+                    'token' => substr($token, 0, 20) . '...',
+                    'error_code' => $errorCode,
+                    'error' => $e->getMessage(),
+                ]);
+            }
+
+            return ['status' => false, 'error' => $e->getMessage(), 'error_code' => $errorCode];
+
         } catch (\Throwable $e) {
-            Log::error("🔥 FCM error: " . $e->getMessage());
-            return ['error' => $e->getMessage()];
+            Log::critical('🔥 FCM unexpected error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return ['status' => false, 'error' => $e->getMessage()];
         }
     }
 }

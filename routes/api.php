@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Api_cnt;
 use App\Http\Controllers\Api_owner;
 use App\Http\Controllers\LocationController;
+use App\Http\Controllers\FcmTestController;
 
 // Example protected route
 // Route::middleware('auth:sanctum')->get('/', function (Request $request) {
@@ -27,6 +28,8 @@ Route::post('/license_no', [Api_cnt::class, 'get_license_by_mobile']);
 Route::post('/driver_store', [Api_cnt::class, 'driver_store'])->name('driver.store');
 // Route::post('/driver_store', [Api_cnt::class, 'driver_store'])->name('driver.store');
 
+
+Route::post('/test-fcm', [FcmTestController::class, 'testFcm']);
 
 Route::post('/checkTransactionId', [Api_owner::class, 'checkTransactionId']);
 Route::post('/popup', [Api_cnt::class, 'popup']);

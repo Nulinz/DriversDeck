@@ -43,41 +43,41 @@ class Api_cnt extends Controller
 
 
     // public function popup(Request $request)
-    // {
-    //     // Get user_id from request
-    //     $userId = $request->input('user_id');
+// {
+//     // Get user_id from request
+//     $userId = $request->input('user_id');
 
     //     // Default response
-    //     $response = [
-    //         'version' => '0.0.6',
-    //         'type'    => null,
-    //         'active_status' => null,
-    //     ];
+//     $response = [
+//         'version' => '0.0.6',
+//         'type'    => null,
+//         'active_status' => null,
+//     ];
 
     //     if ($userId) {
-    //         // ✅ Try fetching from drivers table
-    //         $driver = Driver::find($userId);
+//         // ✅ Try fetching from drivers table
+//         $driver = Driver::find($userId);
 
     //         if ($driver) {
-    //             $response['type'] = $driver->type;
-    //             $response['active_status'] = $driver->active_status;
-    //         } else {
-    //             // ✅ Try fetching from corporate table
-    //             $corporate = \DB::table('corporate')->where('id', $userId)->first();
+//             $response['type'] = $driver->type;
+//             $response['active_status'] = $driver->active_status;
+//         } else {
+//             // ✅ Try fetching from corporate table
+//             $corporate = \DB::table('corporate')->where('id', $userId)->first();
 
     //             if ($corporate) {
-    //                 $response['type'] = $corporate->type;
-    //                 $response['active_status'] = $corporate->active_status ?? 'active'; // default if null
-    //             } else {
-    //                 $response['message'] = 'User not found';
-    //             }
-    //         }
-    //     } else {
-    //         $response['message'] = 'user_id is required';
-    //     }
+//                 $response['type'] = $corporate->type;
+//                 $response['active_status'] = $corporate->active_status ?? 'active'; // default if null
+//             } else {
+//                 $response['message'] = 'User not found';
+//             }
+//         }
+//     } else {
+//         $response['message'] = 'user_id is required';
+//     }
 
     //     return response()->json($response, 200);
-    // }
+// }
     public function popup(Request $request)
     {
         // Get user_id from request
@@ -85,10 +85,10 @@ class Api_cnt extends Controller
 
         // Default response
         $response = [
-            'version'       => '0.0.8',
-            'type'          => null,
+            'version' => '0.0.8',
+            'type' => null,
             'active_status' => null,
-            'exp_date'      => null, // ✅ Only date
+            'exp_date' => null, // ✅ Only date
         ];
 
         if ($userId) {
@@ -393,16 +393,9 @@ class Api_cnt extends Controller
     }
 
 
-
     public function trip_50(Request $request)
     {
         $driver = auth('sanctum')->user();
-
-        // if ($driver->status != 'approved') {
-
-        //     return response()->json(['message' => 'Driver is not approved.'], 403);
-        // }
-
         if (!$driver || !isset($driver->location)) {
             return response()->json(['message' => 'Authenticated driver does not have a location_id.'], 400);
         }
@@ -430,15 +423,21 @@ class Api_cnt extends Controller
         $radius = 50; // km
         $result = [];
 
-        // Fetch all valid pending trips
-        $pendingTrips = Trip::where('status', 'pending')
+        // Fetch ONLY approved/active trips (NOT pending)
+        $approvedTrips = Trip::whereIn('status', ['approved', 'active']) // ← REMOVED 'pending'
             ->whereNotNull('st_cord')
+            ->whereNotNull('end_cord')
             ->whereNotNull('dest_cord')
             ->orderBy('created_at', 'desc')
             ->get();
 
-        foreach ($pendingTrips as $trip) {
+        Log::info("Total approved trips found: " . $approvedTrips->count());
+
+        foreach ($approvedTrips as $trip) {
+            Log::info("Processing trip {$trip->id} with status: {$trip->status}");
+
             if (empty($trip->st_cord) || empty($trip->end_cord) || empty($trip->dest_cord)) {
+                Log::info("Trip {$trip->id} skipped: empty coordinates");
                 continue;
             }
 
@@ -449,6 +448,7 @@ class Api_cnt extends Controller
             // Parse destination coordinates
             $destParts = explode(',', $trip->dest_cord);
             if (count($destParts) < 2) {
+                Log::info("Trip {$trip->id} skipped: invalid dest_cord format");
                 continue;
             }
 
@@ -462,13 +462,14 @@ class Api_cnt extends Controller
                 abs($startLat) > 90 || abs($destLat) > 90 ||
                 abs($startLng) > 180 || abs($destLng) > 180
             ) {
+                Log::info("Trip {$trip->id} skipped: invalid coordinates");
                 continue;
             }
 
             // Calculate distance from driver's location to trip start
             $distance = $this->calculateDistance($driverLat, $driverLon, $startLat, $startLng);
 
-            // log::info("distance -" . $distance);
+            Log::info("Trip {$trip->id} distance: {$distance}km");
 
             if ($distance <= $radius) {
                 // Skip if already applied
@@ -491,9 +492,7 @@ class Api_cnt extends Controller
                     ->where('status', 'saved')
                     ->exists();
 
-                // Get readable city names
-                $startCity = $this->getCityName($startLat, $startLng);
-                $endCity = $this->getCityName($destLat, $destLng);
+                Log::info("Trip {$trip->id} added to results");
 
                 $result[] = [
                     'trip_id' => $trip->id,
@@ -505,21 +504,177 @@ class Api_cnt extends Controller
                     'start_time' => Carbon::parse($trip->st_time)->format('H:i'),
                     'created_at' => Carbon::parse($trip->created_at)->format('Y-m-d H:i'),
                     'saved_sts' => $saved ? 'true' : 'false',
-                    'd_type' => $trip->d_type
-
+                    'd_type' => $trip->d_type,
+                    'status' => $trip->status
                 ];
             }
         }
 
+        Log::info("Total trips in result: " . count($result));
+
         return response()->json([
             'location' => $location->location,
             'total_nearby_trips' => count($result),
-            'trips' =>  $result,
+            'trips' => $result,
         ]);
     }
 
+    // public function trip_50(Request $request)
+    // {
+    //     $driver = auth('sanctum')->user();
+    //     $page = $request->page;
+
+    //     if (!$driver || !isset($driver->location)) {
+    //         return response()->json(['message' => 'Authenticated driver does not have a location_id.'], 400);
+    //     }
+
+    //     // Fetch driver's location details
+    //     $location = DB::table('location_active')->where('id', $driver->location)->first();
+
+    //     if (!$location || !$location->cord) {
+    //         return response()->json(['message' => 'Location not found for location_id: ' . $driver->location], 400);
+    //     }
+
+    //     // Extract coordinates from location
+    //     $locationParts = explode(',', $location->cord);
+    //     if (count($locationParts) < 2) {
+    //         return response()->json(['message' => 'Invalid location coordinates format: ' . $location->cord], 400);
+    //     }
+
+    //     $driverLat = (float) trim($locationParts[0]);
+    //     $driverLon = (float) trim($locationParts[1]);
+
+    //     if (!is_numeric($driverLat) || !is_numeric($driverLon)) {
+    //         return response()->json(['message' => 'Invalid driver coordinates: ' . $location->cord], 400);
+    //     }
+
+    //     $radius = 50; // km
+    //     $threeDaysAgo = Carbon::now()->subDays(3)->toDateString();
+
+    //     // Build query
+    //     $tripQuery = Trip::where('status', 'pending')
+    //         ->whereNotNull('st_cord')
+    //         ->whereNotNull('end_cord')
+    //         ->whereNotNull('dest_cord');
+
+    //     // Only filter by last 3 days if page = 'dashboard'
+    //     if ($page === 'dashboard') {
+    //         $tripQuery->whereDate('created_at', '>=', $threeDaysAgo);
+    //     }
+
+    //     $pendingTrips = $tripQuery->orderBy('created_at', 'desc')->get();
+
+    //     $trips = collect();
+
+    //     foreach ($pendingTrips as $trip) {
+    //         // Skip if any coordinate field is empty
+    //         if (empty($trip->st_cord) || empty($trip->end_cord) || empty($trip->dest_cord)) {
+    //             continue;
+    //         }
+
+    //         // Parse start coordinates
+    //         $startLat = (float) trim($trip->st_cord);
+    //         $startLng = (float) trim($trip->end_cord);
+
+    //         // Parse destination coordinates
+    //         $destParts = explode(',', $trip->dest_cord);
+    //         if (count($destParts) < 2) {
+    //             continue;
+    //         }
+
+    //         $destLat = (float) trim($destParts[0]);
+    //         $destLng = (float) trim($destParts[1]);
+
+    //         // Skip if any coordinate is invalid
+    //         if (
+    //             !is_numeric($startLat) || !is_numeric($startLng) ||
+    //             !is_numeric($destLat) || !is_numeric($destLng) ||
+    //             abs($startLat) > 90 || abs($destLat) > 90 ||
+    //             abs($startLng) > 180 || abs($destLng) > 180
+    //         ) {
+    //             continue;
+    //         }
+
+    //         // Calculate distance from driver's location to trip start
+    //         $distance = $this->calculateDistance($driverLat, $driverLon, $startLat, $startLng);
+
+    //         // Only include trips within radius
+    //         if ($distance <= $radius) {
+    //             // Check dates
+    //             $endDate = Carbon::parse($trip->end_date)->format('Y-m-d');
+    //             $today = Carbon::today()->format('Y-m-d');
+
+    //             // Skip if trip has ended
+    //             if ($endDate < $today) {
+    //                 continue;
+    //             }
+
+    //             // Add saved and applied status
+    //             $trip->saved = DB::table('saved_jobs')
+    //                 ->where('type', 'trip')
+    //                 ->where('trip_id', $trip->id)
+    //                 ->where('status', 'saved')
+    //                 ->where('d_id', $driver->id)
+    //                 ->exists() ?? false;
+
+    //             $trip->applied = DB::table('trip_applied')
+    //                 ->where('trip_id', $trip->id)
+    //                 ->where('d_id', $driver->id)
+    //                 ->exists();
+
+    //             // Format the trip data
+    //             $trip->c_on = Carbon::parse($trip->created_at)->format('Y-m-d H:i:s');
+    //             $trip->st_date = Carbon::parse($trip->st_date)->format('Y-m-d');
+    //             $trip->end_date = Carbon::parse($trip->end_date)->format('Y-m-d');
+    //             $trip->start_time = Carbon::parse($trip->st_time)->format('H:i');
+    //             $trip->distance = round($distance, 2);
+
+    //             $trips->push($trip);
+    //         }
+    //     }
+
+    //     // Filter out trips that driver has already applied to
+    //     $trips = $trips->reject(function ($trip) {
+    //         return $trip->applied;
+    //     })->values();
+
+    //     // Get profile completion data
+    //     $completion = $this->completion();
+
+    //     // Handle driver status and possible rejection/pending reason
+    //     $driverStatus = $driver->status;
+    //     $reason = null;
+
+    //     if (in_array($driverStatus, ['rejected', 'pending'])) {
+    //         $action = $driverStatus === 'rejected' ? 'reject' : 'pending';
+
+    //         $latestReason = \App\Models\ApprovalReason::where('user_id', $driver->id)
+    //             ->where('user_type', $driver->type)
+    //             ->where('action', $action)
+    //             ->latest()
+    //             ->first();
+
+    //         $reason = $latestReason ? $latestReason->reason : null;
+    //     }
+
+    //     $d_status = [
+    //         'd_status' => $driverStatus,
+    //         'number' => '123456789',
+    //         'reason' => $reason,
+    //     ];
+
+    //     return response()->json([
+    //         'status' => true,
+    //         'message' => 'Nearby trips found',
+    //         'data' => $trips,
+    //         'completion' => $completion->completion_percentage ?? 0,
+    //         'd_status' => $d_status,
+    //     ]);
+    // }
+
 
     // Make sure you have this helper method for distance calculation
+
     private function calculateDistance($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371; // Earth's radius in kilometers
@@ -588,8 +743,8 @@ class Api_cnt extends Controller
             'trip_id' => 'required|integer|exists:trip,id',
         ], [
             'trip_id.required' => 'Trip ID is required.',
-            'trip_id.integer'  => 'Trip ID must be a number.',
-            'trip_id.exists'   => 'Trip not found.',
+            'trip_id.integer' => 'Trip ID must be a number.',
+            'trip_id.exists' => 'Trip not found.',
         ]);
 
         if ($validator->fails()) {
@@ -601,9 +756,9 @@ class Api_cnt extends Controller
 
         if (!$trip) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'Trip not found.',
-                'data'    => []
+                'data' => []
             ], 200);
         }
 
@@ -643,29 +798,29 @@ class Api_cnt extends Controller
 
         // Prepare response
         $data = [
-            'trip_id'    => $trip->id,
-            'img'        => $owner->logo ? asset($owner->logo) : 'N/A',
-            'st_loc'     => $trip->st_loc ?? 'N/A',
-            'st_dest'    => $trip->st_dest ?? 'N/A',
-            'st_date'    => $trip->st_date ?? 'N/A',
-            'st_date'    => $trip->end_date ?? 'N/A',
-            'owner_id'       => $owner->id ?? 'N/A',
-            'name'       => $owner->name ?? 'N/A',
-            'contact'    => $owner->contact ?? 'N/A',
-            'st_date'    => $trip->st_date ? Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
-            'end_date'   => $trip->end_date ? Carbon::parse($trip->end_date)->format('d/m/Y') : 'N/A',
-            'st_time'    => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
+            'trip_id' => $trip->id,
+            'img' => $owner->logo ? asset($owner->logo) : 'N/A',
+            'st_loc' => $trip->st_loc ?? 'N/A',
+            'st_dest' => $trip->st_dest ?? 'N/A',
+            'st_date' => $trip->st_date ?? 'N/A',
+            'st_date' => $trip->end_date ?? 'N/A',
+            'owner_id' => $owner->id ?? 'N/A',
+            'name' => $owner->name ?? 'N/A',
+            'contact' => $owner->contact ?? 'N/A',
+            'st_date' => $trip->st_date ? Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
+            'end_date' => $trip->end_date ? Carbon::parse($trip->end_date)->format('d/m/Y') : 'N/A',
+            'st_time' => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
             'no_of_days' => $trip->no_days ?? 'N/A',
-            'veh_type'   => $trip->veh_type ?? 'N/A',
-            'veh_name'   => $trip->veh_name ?? 'N/A',
-            'veh_number'   => $trip->veh_number,
+            'veh_type' => $trip->veh_type ?? 'N/A',
+            'veh_name' => $trip->veh_name ?? 'N/A',
+            'veh_number' => $trip->veh_number,
 
 
             'salary_perday' => $tripApplied->salary_perday ?? 'N/A',
-            'wait_charge'   => $tripApplied->wait_charge ?? 'N/A',
-            'food'          => $tripApplied->food ?? 'N/A',
-            'avg_salary'    => ($tripApplied->salary_perday ?? 0) * ($trip->no_days ?? 0),
-            't_code'        => $tripApplied->trip_code ?? null,
+            'wait_charge' => $tripApplied->wait_charge ?? 'N/A',
+            'food' => $tripApplied->food ?? 'N/A',
+            'avg_salary' => ($tripApplied->salary_perday ?? 0) * ($trip->no_days ?? 0),
+            't_code' => $tripApplied->trip_code ?? null,
 
             'applied_on' => isset($tripApplied) && $tripApplied->created_at
                 ? Carbon::parse($tripApplied->created_at)->format('Y/m/d H:i:s')
@@ -673,7 +828,7 @@ class Api_cnt extends Controller
 
 
             'cancel_count' => $remaining_cancels,
-            'trip_status'     => $trip->status ?? 'N/A',
+            'trip_status' => $trip->status ?? 'N/A',
         ];
 
         // 'st_date'    => $trip->st_date ? \Carbon\Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
@@ -684,15 +839,15 @@ class Api_cnt extends Controller
 
         // Return success response
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Apply job profile retrieved successfully.',
-            'data'    => $data
+            'data' => $data
         ], 200);
     }
 
     public function location_active(Request $request)
     {
-        $loc =  DB::table('location_active')->where('status', 'active')->select('id', 'location')->get();
+        $loc = DB::table('location_active')->where('status', 'active')->select('id', 'location')->get();
         // Logic to handle the active location
         return response()->json(['message' => 'Location is active', 'loc' => $loc]);
     }
@@ -709,8 +864,8 @@ class Api_cnt extends Controller
             'trip_id' => 'required|integer|exists:trip,id',
         ], [
             'trip_id.required' => 'Trip ID is required.',
-            'trip_id.integer'  => 'Trip ID must be a number.',
-            'trip_id.exists'   => 'Trip not found.',
+            'trip_id.integer' => 'Trip ID must be a number.',
+            'trip_id.exists' => 'Trip not found.',
         ]);
 
         if ($validator->fails()) {
@@ -722,9 +877,9 @@ class Api_cnt extends Controller
 
         if (!$trip) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'Trip not found.',
-                'data'    => []
+                'data' => []
             ], 200);
         }
 
@@ -804,22 +959,22 @@ class Api_cnt extends Controller
 
         // Prepare response
         $data = [
-            'trip_id'    => $trip->id,
-            'img'        => $owner->logo ? asset($owner->logo) : 'N/A',
-            'st_loc'     => $trip->st_loc ?? 'N/A',
-            'st_dest'    => $trip->st_dest ?? 'N/A',
-            'name'       => $owner->name ?? 'N/A',
-            'contact'    => $trip->con_number ?? 'N/A',
-            'st_date'    => $trip->st_date ? Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
-            'end_date'   => $trip->end_date ? Carbon::parse($trip->end_date)->format('d/m/Y') : 'N/A',
-            'st_time'    => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
+            'trip_id' => $trip->id,
+            'img' => $owner->logo ? asset($owner->logo) : 'N/A',
+            'st_loc' => $trip->st_loc ?? 'N/A',
+            'st_dest' => $trip->st_dest ?? 'N/A',
+            'name' => $owner->name ?? 'N/A',
+            'contact' => $trip->con_number ?? 'N/A',
+            'st_date' => $trip->st_date ? Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
+            'end_date' => $trip->end_date ? Carbon::parse($trip->end_date)->format('d/m/Y') : 'N/A',
+            'st_time' => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
             'no_of_days' => $trip->no_days ?? 'N/A',
-            'veh_type'   => $trip->veh_type ?? 'N/A',
-            'veh_name'   => $trip->veh_name ?? 'N/A',
-            'veh_number'   => $trip->veh_number,
-            'trip_status'   => $trip->status ?? 'N/A',
-            'st_city'   => $st_city[1] ?? 'N/A',
-            'end_city'   => $end_city[1] ?? 'N/A',
+            'veh_type' => $trip->veh_type ?? 'N/A',
+            'veh_name' => $trip->veh_name ?? 'N/A',
+            'veh_number' => $trip->veh_number,
+            'trip_status' => $trip->status ?? 'N/A',
+            'st_city' => $st_city[1] ?? 'N/A',
+            'end_city' => $end_city[1] ?? 'N/A',
             'driver_conflict' => $hasConflict,
             'expired'    => $isExpired
 
@@ -827,13 +982,11 @@ class Api_cnt extends Controller
 
         // Return success response
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Apply job profile retrieved successfully.',
-            'data'    => $data
+            'data' => $data
         ], 200);
     }
-
-
 
     public function driver_trip_cancel(Request $request)
     {
@@ -841,11 +994,11 @@ class Api_cnt extends Controller
         $driverId = $user->id;
 
         $validator = Validator::make($request->all(), [
-            'trip_id'  => 'required|integer|exists:trip,id',
+            'trip_id' => 'required|integer|exists:trip,id',
             'owner_id' => 'required|integer|exists:corporate,id',
-            'status'   => 'required|in:Cancel',
-            'reason'   => 'nullable|string',
-            'remarks'  => 'nullable|string',
+            'status' => 'required|in:Cancel',
+            'reason' => 'nullable|string',
+            'remarks' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -853,7 +1006,7 @@ class Api_cnt extends Controller
         }
 
         $ownerId = $request->owner_id;
-        $tripId  = $request->trip_id;
+        $tripId = $request->trip_id;
 
         // Check if trip belongs to that owner
         $trip = DB::table('trip')
@@ -863,7 +1016,7 @@ class Api_cnt extends Controller
 
         if (!$trip) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'Trip not found or owner mismatch.',
             ], 200);
         }
@@ -882,7 +1035,7 @@ class Api_cnt extends Controller
             DB::table('trip')
                 ->where('id', $tripId)
                 ->update([
-                    'status'     => $request->status,
+                    'status' => $request->status,
                     'updated_at' => now()
                 ]);
 
@@ -890,24 +1043,24 @@ class Api_cnt extends Controller
                 ->where('trip_id', $tripId)
                 ->where('d_id', $driverId)
                 ->update([
-                    'status'     => $request->status,
+                    'status' => $request->status,
                     'updated_at' => now()
                 ]);
 
             DB::table('cancel_req')->insert([
-                'trip_id'    => $tripId,
-                'type'       => 'acting',
-                'reason'    => $request->reason,
-                'remarks'   => $request->remarks,
-                'reason'     => $request->reason,
-                'status'     => 'Cancel',
-                'c_by'       => $driverId,
-                'c_type'     => 'driver',
+                'trip_id' => $tripId,
+                'type' => 'acting',
+                'reason' => $request->reason,
+                'remarks' => $request->remarks,
+                'reason' => $request->reason,
+                'status' => 'Cancel',
+                'c_by' => $driverId,
+                'c_type' => 'driver',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            $trip_det =  Trip::find($tripId);
+            $trip_det = Trip::find($tripId);
 
             $cor = Corporate::find($trip_det->c_by);
 
@@ -922,11 +1075,11 @@ class Api_cnt extends Controller
                 'c_by' => auth('sanctum')->user()->id, // Assuming you want to log who created this notification
             ])->save();
 
-
-
-
             if ($cor->token) {
-                $fcm = new Fcm(); // ✅ Or use app(Fcm::class)
+                Log::info('🚀 Controller reached BEFORE FCM');
+                $fcm = app(\App\Services\Fcm::class);
+                // ✅ Or use app(Fcm::class)
+                Log::info('🚀 FCM instance created');
                 $fcm->send_notify(
                     $cor->token,
                     'trip_' . $request->status,
@@ -938,7 +1091,7 @@ class Api_cnt extends Controller
             }
 
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => 'Trip cancelled successfully.',
             ], 200);
         } else {
@@ -946,7 +1099,7 @@ class Api_cnt extends Controller
             DB::table('trip')
                 ->where('id', $tripId)
                 ->update([
-                    'status'     => 'Cancel Requested',
+                    'status' => 'Cancel Requested',
                     'updated_at' => now()
                 ]);
 
@@ -954,21 +1107,21 @@ class Api_cnt extends Controller
                 ->where('trip_id', $tripId)
                 ->where('d_id', $driverId)
                 ->update([
-                    'status'     => 'Cancel Requested',
+                    'status' => 'Cancel Requested',
                     'updated_at' => now()
                 ]);
 
             DB::table('cancel_req')->insert([
-                'trip_id'    => $tripId,
-                'type'       => 'acting',
-                'status'     => 'Request', // Needs admin approval
-                'c_by'       => $driverId,
-                'c_type'     => 'driver',
+                'trip_id' => $tripId,
+                'type' => 'acting',
+                'status' => 'Request', // Needs admin approval
+                'c_by' => $driverId,
+                'c_type' => 'driver',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
 
-            $trip_det =  Trip::find($tripId);
+            $trip_det = Trip::find($tripId);
 
             $cor = Corporate::find($trip_det->c_by);
 
@@ -983,11 +1136,11 @@ class Api_cnt extends Controller
                 'c_by' => auth('sanctum')->user()->id, // Assuming you want to log who created this notification
             ])->save();
 
-
-
-
             if ($cor->token) {
-                $fcm = new Fcm(); // ✅ Or use app(Fcm::class)
+                Log::info('🚀 Controller reached BEFORE FCM');
+                $fcm = app(\App\Services\Fcm::class);
+                // ✅ Or use app(Fcm::class)
+                Log::info('🚀 FCM instance created');
                 $fcm->send_notify(
                     $cor->token,
                     'trip_' . $request->status,
@@ -999,14 +1152,11 @@ class Api_cnt extends Controller
             }
 
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => 'Trip cancel request sent to admin. Awaiting approval.',
             ], 200);
         }
     }
-
-
-
 
     public function trip_applied(Request $request)
     {
@@ -1054,7 +1204,7 @@ class Api_cnt extends Controller
             // 'c_by' => auth('driver')->user()->id
         ]);
 
-        $trip_det =  Trip::find($request->trip_id);
+        $trip_det = Trip::find($request->trip_id);
 
         $corporate = Corporate::where('id', $trip_det->c_by)->first();
 
@@ -1064,16 +1214,16 @@ class Api_cnt extends Controller
             'prime_table' => $request->trip_id,
             'cat' => 'trip_applied',
             'title' => 'New Driver Applied',
-            'body' => 'New Driver Applied for the Trip ID : ' . $request->trip_id,
+            'body' => 'New Driver Applied for the Trip ID : ',
             'status' => 'active',
             'c_by' => $driverId, // Assuming you want to log who created this notification
         ])->save();
 
-
-
-
         if ($corporate->token) {
-            $fcm = new Fcm(); // ✅ Or use app(Fcm::class)
+            Log::info('🚀 Controller reached BEFORE FCM');
+            $fcm = app(\App\Services\Fcm::class);
+            // ✅ Or use app(Fcm::class)
+            Log::info('🚀 FCM instance created');
             $fcm->send_notify(
                 $corporate->token,
                 'trip_applied',
@@ -1096,8 +1246,6 @@ class Api_cnt extends Controller
             ],
         ]);
     }
-
-
 
     public function getAppliedTripProfile(Request $request)
     {
@@ -1145,24 +1293,24 @@ class Api_cnt extends Controller
         $owner = DB::table('corporate')->where('id', $trip->c_by)->first();
 
         $result = [
-            'trip_id'       => $application->trip_id,
-            'img'           => $owner && $owner->logo ? asset($owner->logo) : 'N/A',
-            'st_loc'        => $trip->st_loc ?? 'N/A',
-            'st_dest'       => $trip->st_dest ?? 'N/A',
-            'name'          => $owner->name ?? 'N/A',
-            'contact'       => $owner->contact ?? 'N/A',
-            'st_date'       => $trip->st_date ? Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
-            'end_date'      => $trip->end_date ? Carbon::parse($trip->end_date)->format('d/m/Y') : 'N/A',
-            'st_time'       => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
-            'no_of_days'    => $trip->no_days ?? 'N/A',
-            'veh_type'      => $trip->veh_type ?? 'N/A',
-            'veh_name'      => $trip->veh_name ?? 'N/A',
-            'veh_number'      => $trip->veh_number,
+            'trip_id' => $application->trip_id,
+            'img' => $owner && $owner->logo ? asset($owner->logo) : 'N/A',
+            'st_loc' => $trip->st_loc ?? 'N/A',
+            'st_dest' => $trip->st_dest ?? 'N/A',
+            'name' => $owner->name ?? 'N/A',
+            'contact' => $owner->contact ?? 'N/A',
+            'st_date' => $trip->st_date ? Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
+            'end_date' => $trip->end_date ? Carbon::parse($trip->end_date)->format('d/m/Y') : 'N/A',
+            'st_time' => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
+            'no_of_days' => $trip->no_days ?? 'N/A',
+            'veh_type' => $trip->veh_type ?? 'N/A',
+            'veh_name' => $trip->veh_name ?? 'N/A',
+            'veh_number' => $trip->veh_number,
             'salary_perday' => $application->salary_perday ?? 'N/A',
-            'wait_charge'   => $application->wait_charge ?? 'N/A',
-            'food'          => $application->food ?? 'N/A',
-            'status'        => $application->status ?? 'N/A',
-            'applied_on'    => $application->created_at
+            'wait_charge' => $application->wait_charge ?? 'N/A',
+            'food' => $application->food ?? 'N/A',
+            'status' => $application->status ?? 'N/A',
+            'applied_on' => $application->created_at
                 ? $application->created_at->format('Y-m-d H:i:s')
                 : 'N/A',
         ];
@@ -1225,16 +1373,16 @@ class Api_cnt extends Controller
 
 
             $result[] = [
-                'trip_id'       => $application->trip_id,
-                'title'         => $trip->title ?? 'N/A',
-                'saved_status'  => $savedStatus,
-                'start_city'    => $trip->st_city,
-                'end_city'      => $trip->end_city,
-                'start_date'    => $trip->st_date ?? null,
-                'end_date'      => $trip->end_date ?? null,
-                'start_time'    => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : null,
+                'trip_id' => $application->trip_id,
+                'title' => $trip->title ?? 'N/A',
+                'saved_status' => $savedStatus,
+                'start_city' => $trip->st_city,
+                'end_city' => $trip->end_city,
+                'start_date' => $trip->st_date ?? null,
+                'end_date' => $trip->end_date ?? null,
+                'start_time' => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : null,
                 'applied_status' => $application->status,
-                'created_at'    => $trip->created_at ? Carbon::parse($trip->created_at)->format('Y-m-d H:i:s') : null,
+                'created_at' => $trip->created_at ? Carbon::parse($trip->created_at)->format('Y-m-d H:i:s') : null,
             ];
         }
 
@@ -1299,9 +1447,9 @@ class Api_cnt extends Controller
         SavedJobs::create([
             'type' => $user->type,
             'trip_id' => $request->trip_id,
-            'd_id'    => $driverId,
-            'status'  => $request->issaved,
-            'c_by'    => $driverId,
+            'd_id' => $driverId,
+            'status' => $request->issaved,
+            'c_by' => $driverId,
         ]);
 
         return response()->json([
@@ -1350,17 +1498,17 @@ class Api_cnt extends Controller
             }
 
             return [
-                'trip_id'     => $trip->trip_id,
-                'title'       => $trip->title,
-                'start_city'  => $trip->start_city,
-                'end_city'    => $trip->end_city,
-                'start_date'  => $trip->start_date,
-                'end_date'    => $trip->end_date,
-                'start_time'  => $trip->start_time,
-                'status'      => $trip->status,
+                'trip_id' => $trip->trip_id,
+                'title' => $trip->title,
+                'start_city' => $trip->start_city,
+                'end_city' => $trip->end_city,
+                'start_date' => $trip->start_date,
+                'end_date' => $trip->end_date,
+                'start_time' => $trip->start_time,
+                'status' => $trip->status,
                 'trip_status' => $trip->trip_status,
                 'saved_status' => $trip->saved_status === 'saved' ? true : false,
-                'created_at'  => $trip->created_at
+                'created_at' => $trip->created_at
                     ? Carbon::parse($trip->created_at)->format('Y-m-d H:i:s')
                     : 'N/A',
             ];
@@ -1575,8 +1723,8 @@ class Api_cnt extends Controller
             'phone' => 'required|numeric|digits:10',
         ], [
             'phone.required' => 'Phone number is required.',
-            'phone.numeric'  => 'Phone number must be numeric.',
-            'phone.digits'   => 'Phone number must be 10 digits.',
+            'phone.numeric' => 'Phone number must be numeric.',
+            'phone.digits' => 'Phone number must be 10 digits.',
         ]);
 
         if ($validator->fails()) {
@@ -1631,19 +1779,15 @@ class Api_cnt extends Controller
         ], 200);
     }
 
-
-
-
-
     public function TripAppliedStart(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'trip_id'   => 'required|integer|exists:trip_applied,trip_id',
+            'trip_id' => 'required|integer|exists:trip_applied,trip_id',
             'driver_id' => 'required|integer|exists:trip_applied,d_id',
             // Removed start_time and end_time from validation
-            'start_loc'  => 'nullable|string',
-            'end_loc'    => 'nullable|string',
-            'status'     => 'required|in:Start,End',
+            'start_loc' => 'nullable|string',
+            'end_loc' => 'nullable|string',
+            'status' => 'required|in:Start,End',
         ]);
 
         if ($validator->fails()) {
@@ -1658,14 +1802,14 @@ class Api_cnt extends Controller
 
         if (!$record) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'No matching record found for update.',
             ], 200);
         }
 
         // Common fields
         $appliedUpdateData = [
-            'status'     => $request->status,
+            'status' => $request->status,
             'updated_at' => now()
         ];
 
@@ -1676,7 +1820,7 @@ class Api_cnt extends Controller
 
             if ($request->filled('start_loc')) {
                 $appliedUpdateData['start_loc'] = $request->start_loc;
-                $appliedUpdateData['crnt_loc']  = $request->start_loc; // Also update current location
+                $appliedUpdateData['crnt_loc'] = $request->start_loc; // Also update current location
             }
         }
 
@@ -1699,12 +1843,12 @@ class Api_cnt extends Controller
         $tripUpdated = DB::table('trip')
             ->where('id', $request->trip_id)
             ->update([
-                'status'     => $request->status,
+                'status' => $request->status,
                 'updated_at' => now()
             ]);
 
 
-        $trip_det =  Trip::find($request->trip_id);
+        $trip_det = Trip::find($request->trip_id);
 
         $cor = Corporate::find($trip_det->c_by);
 
@@ -1723,7 +1867,10 @@ class Api_cnt extends Controller
 
 
         if ($cor->token) {
-            $fcm = new Fcm(); // ✅ Or use app(Fcm::class)
+            Log::info('🚀 Controller reached BEFORE FCM');
+            $fcm = app(\App\Services\Fcm::class);
+            // ✅ Or use app(Fcm::class)
+            Log::info('🚀 FCM instance created');
             $fcm->send_notify(
                 $cor->token,
                 'trip_' . $request->status,
@@ -1736,18 +1883,16 @@ class Api_cnt extends Controller
 
         if ($tripAppliedUpdated || $tripUpdated) {
             return response()->json([
-                'status'  => true,
+                'status' => true,
                 'message' => 'Trip status updated successfully.',
             ], 200);
         } else {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'No updates were made.',
             ], 200);
         }
     }
-
-
 
     public function trip_current_loc(Request $request)
     {
@@ -1761,7 +1906,7 @@ class Api_cnt extends Controller
         }
 
         $validator = Validator::make($request->all(), [
-            'trip_id'     => 'required|integer|exists:trip_applied,trip_id',
+            'trip_id' => 'required|integer|exists:trip_applied,trip_id',
             'current_loc' => 'required|string',
         ]);
 
@@ -1795,12 +1940,12 @@ class Api_cnt extends Controller
             ->where('trip_id', $request->trip_id)
             ->where('d_id', $user->id)
             ->update([
-                'crnt_loc'   => $request->current_loc,
+                'crnt_loc' => $request->current_loc,
                 'updated_at' => now()
             ]);
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Current location updated successfully.',
         ]);
     }
@@ -1811,7 +1956,7 @@ class Api_cnt extends Controller
     {
         $request->validate([
             'trip_id' => 'required|integer|exists:trip_applied,trip_id',
-            'image'   => 'required|image'
+            'image' => 'required|image'
         ]);
 
         $image = $request->file('image');
@@ -1828,12 +1973,12 @@ class Api_cnt extends Controller
         DB::table('trip')
             ->where('id', $request->trip_id)
             ->update([
-                'trip_img'   => 'trip_img/' . $filename,
+                'trip_img' => 'trip_img/' . $filename,
                 'updated_at' => now(),
             ]);
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Trip image uploaded successfully.',
             'img_url' => asset('trip_img/' . $filename)
         ]);
@@ -2343,9 +2488,9 @@ class Api_cnt extends Controller
 
         if (!$trip) {
             return response()->json([
-                'status'  => false,
+                'status' => false,
                 'message' => 'Trip not found.',
-                'data'    => []
+                'data' => []
             ], 200);
         }
 
@@ -2358,19 +2503,19 @@ class Api_cnt extends Controller
 
         $data = [
             'trip_id' => $trip->id,
-            'img'     => $owner->logo ? asset($owner->logo) : 'N/A',
-            'name'    => $owner->name ?? 'N/A',
+            'img' => $owner->logo ? asset($owner->logo) : 'N/A',
+            'name' => $owner->name ?? 'N/A',
             'contact' => $owner->contact ?? 'N/A',
-            't_code'  => $tripApplied->trip_code ?? 'N/A',
-            'st_loc'  => $tripApplied->start_loc ?? 'N/A',
+            't_code' => $tripApplied->trip_code ?? 'N/A',
+            'st_loc' => $tripApplied->start_loc ?? 'N/A',
             'end_loc' => $trip->dest_cord ?? 'N/A',
             'trip_img' => $trip->trip_img ? asset($trip->trip_img) : 'null',
         ];
 
         return response()->json([
-            'status'  => true,
+            'status' => true,
             'message' => 'Basic trip details retrieved successfully.',
-            'data'    => $data
+            'data' => $data
         ], 200);
     }
 
@@ -2567,10 +2712,10 @@ class Api_cnt extends Controller
 
 
         DB::table('delete_acc')->insert([
-            'type'       => $type,
-            'reason'     => $request->reason,
-            'status'     => 'delete',
-            'c_by'       => $userId,
+            'type' => $type,
+            'reason' => $request->reason,
+            'status' => 'delete',
+            'c_by' => $userId,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -2585,10 +2730,6 @@ class Api_cnt extends Controller
             'message' => 'Account delete status updated successfully.'
         ]);
     }
-
-
-    // public function for  notify_list
-
     public function notify_list()
     {
 
@@ -2607,9 +2748,7 @@ class Api_cnt extends Controller
         ]);
     }
 
-
     // notify update
-
     public function notify_update(Request $req)
     {
         // log::info(auth('sanctum')->user()->id);

@@ -6,7 +6,7 @@ use App\Http\Controllers\CorprateController;
 use App\Http\Controllers\CustomerReport;
 use App\Http\Controllers\ApprovalController;
 use App\Http\Controllers\AuthController;
-use App\Http\Controllers\Organization\AuthController_org;
+use App\Http\Controllers\organization\AuthController_org;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\RequestController;
@@ -16,13 +16,21 @@ use App\Http\Controllers\VacancyController;
 use App\Http\Controllers\TripCanelController;
 use App\Http\Controllers\ChangeTypeController;
 use App\Http\Controllers\Api_owner;
-use App\Http\Controllers\Landing\LandingController;
-use App\Http\Controllers\Organization\VacancyController_org;
+use App\Http\Controllers\landing\LandingController;
+use App\Http\Controllers\organization\VacancyController_org;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CashfreepaymentController;
 
 
+
+Route::get('/admin/vacancy', [VacancyController::class, 'vacancy'])->name('admin.vacancy.vacancy_approvel');
+
+Route::post('/admin/vacancy/approval', [VacancyController::class, 'handleApproval'])
+    ->name('admin.vacancy.approval');
+
+// Route::post('/admin/vacancy/approval', [VacancyController::class, 'handleApproval'])
+//     ->name('admin.vacancy.approval');
 
 //for 
 Route::get('/payment', [CashfreepaymentController::class, 'createPayment'])->name('payment.create');
@@ -145,9 +153,8 @@ Route::middleware(['auth:web', 'cook.auth.corp'])->group(function () {
     Route::get('/admin/reports', [ReportsController::class, 'reports'])->name('admin.reports.report');
     // trip
     Route::get('/admin/trip', [TripController::class, 'trip_list'])->name('admin.trip.trip_list');
-    Route::get('/admin/trip_profile', [TripController::class, 'trip_profile'])->name('admin.trip.trip_profile');
+    Route::get('/admin/trip_profile/{id}', [TripController::class, 'trip_profile'])->name('admin.trip.trip_profile');
     // vacancy
-    Route::get('/admin/vacancy', [VacancyController::class, 'vacancy'])->name('admin.vacancy.vacancy_approvel');
 
     // new Vacancy Routes
     // Route::get('/admin/vacancy', [VacancyController::class, 'vacancy'])->name('admin.vacancy.vacancy_approvel');
@@ -186,10 +193,16 @@ Route::get('/admin/trip', [TripController::class, 'trip_list'])->name('admin.tri
 
 Route::get('/admin/trip_profile/{id}', [TripController::class, 'trip_profile'])->name('admin.trip.trip_profile');
 // vacancy
-Route::get('/admin/vacancy', [VacancyController::class, 'vacancy'])->name('admin.vacancy.vacancy_approvel');
-// Correct POST route
-Route::post('/admin/vacancy/approval', [VacancyController::class, 'handleApproval'])->name('admin.vacancy.approval');
-// In routes/web.php
+Route::get('/admin/vacancy', [VacancyController::class, 'vacancy'])
+    ->name('admin.vacancy.vacancy_approvel');
+
+
+
+// Route::get('/admin/vacancy/approval', function () {
+//     return 'GET NOT ALLOWED';
+// });
+
+
 // GET route for approve/reject via link
 // Route::get('/admin/vacancy/approval/{type}/{id}/{action}', [VacancyController::class, 'handleApprovalReq'])
 //     ->name('admin.vacancy.action');
@@ -202,7 +215,7 @@ Route::get('/admin.location', [LocationController::class, 'location'])->name('ad
 Route::get('/admin/change_type', [ChangeTypeController::class, 'changetype'])->name('admin.change_type.change_type');
 
 //org Middleware....
-Route::get('/organization/login', [App\Http\Controllers\Organization\AuthController_org::class, 'login'])->name('auth.login.org');
+Route::get('/organization/login', [App\Http\Controllers\organization\AuthController_org::class, 'login'])->name('auth.login.org');
 
 
 Route::get('/subscription/payment-details/{plan}', [AuthController_org::class, 'payment_details'])->name('auth.payment_details');
@@ -219,7 +232,7 @@ Route::get('/organization/otp', [AuthController_org::class, 'otp'])->name('auth.
 Route::post('/organization/verify-otp', [AuthController_org::class, 'verifyOtp'])->name('auth.verify_otp');
 
 
-Route::post('organization/login_check', [App\Http\Controllers\Organization\AuthController_org::class, 'login_check'])->name('auth.login_check');
+Route::post('organization/login_check', [App\Http\Controllers\organization\AuthController_org::class, 'login_check'])->name('auth.login_check');
 
 
 
@@ -229,20 +242,20 @@ Route::post('organization/login_check', [App\Http\Controllers\Organization\AuthC
 // Route::post('/organization/verify-otp', [AuthController_org::class, 'verifyOtp'])->name('auth.verify_otp');
 
 
-// Route::post('organization/login_check', [App\Http\Controllers\Organization\AuthController_org::class, 'login_check'])->name('auth.login_check');
+// Route::post('organization/login_check', [App\Http\Controllers\organization\AuthController_org::class, 'login_check'])->name('auth.login_check');
 
 // forgot password
-Route::get('organization/forgot_pass', [App\Http\Controllers\Organization\AuthController_org::class, 'forgotpass'])->name('auth.forgot_pass');
+Route::get('organization/forgot_pass', [App\Http\Controllers\organization\AuthController_org::class, 'forgotpass'])->name('auth.forgot_pass');
 // get opt
-Route::get('organization/get_opt', [App\Http\Controllers\Organization\AuthController_org::class, 'otp'])->name('auth.otp');
+Route::get('organization/get_opt', [App\Http\Controllers\organization\AuthController_org::class, 'otp'])->name('auth.otp');
 // change password
-Route::get('organization/change_pass', [App\Http\Controllers\Organization\AuthController_org::class, 'changepass'])->name('auth.change_pass');
+Route::get('organization/change_pass', [App\Http\Controllers\organization\AuthController_org::class, 'changepass'])->name('auth.change_pass');
 
 // register details
 
 // trip cancel from owner...
 
-Route::post('/trip-cancel', [App\Http\Controllers\Api_owner::class, 'trip_cancel'])->name('act_trip_cancel_owner');
+Route::post('/trip-cancel', [Api_owner::class, 'trip_cancel'])->name('act_trip_cancel_owner');
 
 Route::get('/organization/get-locations/{district}', [AuthController_org::class, 'get_locations_by_district'])
     ->name('organization.getLocations');
@@ -268,7 +281,7 @@ Route::get('organization/payment_callback', [AuthController_org::class, 'payment
 Route::prefix('organization')->name('organization.')->namespace('App\Http\Controllers\Organization')->middleware(['auth:corporate', 'cook.auth.corp'])->group(function () {
     // auth
     // Add this near your other auth routes
-    // Route::get('/login', [App\Http\Controllers\Organization\AuthController_org::class, 'login'])->name('login');
+    // Route::get('/login', [App\Http\Controllers\organization\AuthController_org::class, 'login'])->name('login');
 
     // Route::get('/login', 'AuthController_org@login')->name('auth.login');
     Route::get('/logout', 'AuthController_org@logout')->name('auth.logout');
@@ -343,7 +356,7 @@ Route::prefix('organization')->name('organization.')->namespace('App\Http\Contro
 // landing routes
 Route::get('/', [LandingController::class, 'landing'])->name('landing.index');
 
-Route::name('landing.')->namespace('App\Http\Controllers\Landing')->group(function () {
+Route::name('landing.')->namespace('App\Http\Controllers\landing')->group(function () {
 
     // about
     Route::get('/about', 'LandingController@about')->name('landing.about');

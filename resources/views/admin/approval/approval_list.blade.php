@@ -141,7 +141,7 @@
                                                         {{-- Approve Button --}}
                                                         <form method="POST"
                                                             action="{{ route('admin.handle.approval', ['type' => $driver->type, 'id' => $driver->id, 'action' => 'approve']) }}"
-                                                            onsubmit="return confirm('Are you sure you want to approve this {{ $driver->type }}?');">
+                                                            onsubmit="return confirm('approve this {{ $driver->type }}?');">
                                                             @csrf
                                                             <button type="submit" class="btn btn-sm btn-success">Approve</button>
                                                         </form>

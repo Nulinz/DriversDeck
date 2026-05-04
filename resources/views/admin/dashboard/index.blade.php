@@ -9,152 +9,160 @@
             </div>
             {{-- basic cards --}}
             <div class="row">
-{{-- Acting Driver Card --}}
-<div class="col-12 col-md-6 col-xl-3 d-flex">
-    <a href="{{ route('admin.candidate.index', ['type' => 'acting']) }}" class="w-100 text-decoration-none text-dark">
-        <div class="card flex-fill">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col mb-2">
-                        <h5 class="card-title mb-0">Acting Driver</h5>
-                    </div>
+                {{-- Acting Driver Card --}}
+                <div class="col-12 col-md-6 col-xl-3 d-flex">
+                    <a href="{{ route('admin.candidate.index', ['type' => 'acting']) }}"
+                        class="w-100 text-decoration-none text-dark">
+                        <div class="card flex-fill">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col mb-2">
+                                        <h5 class="card-title mb-0">Acting Driver</h5>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <h3 class="mt-0 mb-0 fw-bold">{{ isset($all[2]) ? $all[2]->total ?? 0 : 0 }}</h3>
+                                    <div class="mb-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <h3 class="mt-0 mb-0 fw-bold">{{ isset($all[2]) ? $all[2]->total ?? 0 : 0 }}</h3>
-                    <div class="mb-0"></div>
-                </div>
-            </div>
-        </div>
-    </a>
-</div>
 
-{{-- Full Time Driver Card --}}
-<div class="col-12 col-md-6 col-xl-3 d-flex">
-    <a href="{{ route('admin.candidate.index', ['type' => 'permanent']) }}" class="w-100 text-decoration-none text-dark">
-        <div class="card flex-fill">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col mb-2">
-                        <h5 class="card-title mb-0">Full Time Driver</h5>
-                    </div>
+                {{-- Full Time Driver Card --}}
+                <div class="col-12 col-md-6 col-xl-3 d-flex">
+                    <a href="{{ route('admin.candidate.index', ['type' => 'permanent']) }}"
+                        class="w-100 text-decoration-none text-dark">
+                        <div class="card flex-fill">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col mb-2">
+                                        <h5 class="card-title mb-0">Full Time Driver</h5>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <h3 class="mt-0 mb-0 fw-bold">{{ isset($all[3]) ? $all[3]->total ?? 0 : 0 }}</h3>
+                                    <div class="mb-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <h3 class="mt-0 mb-0 fw-bold">{{ isset($all[3]) ? $all[3]->total ?? 0 : 0 }}</h3>
-                    <div class="mb-0"></div>
-                </div>
-            </div>
-        </div>
-    </a>
-</div>
 
-{{-- Corporate Card --}}
-<div class="col-12 col-md-6 col-xl-3 d-flex">
-    <a href="{{ route('admin.corprate.corprate_list', ['type' => 'corporate']) }}" class="w-100 text-decoration-none text-dark">
-        <div class="card flex-fill">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col mb-2">
-                        <h5 class="card-title mb-0">Corporate</h5>
-                    </div>
+                {{-- Corporate Card --}}
+                <div class="col-12 col-md-6 col-xl-3 d-flex">
+                    <a href="{{ route('admin.corprate.corprate_list', ['type' => 'corporate']) }}"
+                        class="w-100 text-decoration-none text-dark">
+                        <div class="card flex-fill">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col mb-2">
+                                        <h5 class="card-title mb-0">Corporate</h5>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <h3 class="mt-0 mb-0 fw-bold">{{ isset($all[1]) ? $all[1]->total ?? 0 : 0 }}</h3>
+                                    <div class="mb-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <h3 class="mt-0 mb-0 fw-bold">{{ isset($all[1]) ? $all[1]->total ?? 0 : 0 }}</h3>
-                    <div class="mb-0"></div>
-                </div>
-            </div>
-        </div>
-    </a>
-</div>
 
-{{-- Vehicle Owners Card --}}
-<div class="col-12 col-md-6 col-xl-3 d-flex">
-    <a href="{{ route('admin.corprate.corprate_list', ['type' => 'owner']) }}" class="w-100 text-decoration-none text-dark">
-        <div class="card flex-fill">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col mb-2">
-                        <h5 class="card-title mb-0">Vehicle Owners</h5>
-                    </div>
+                {{-- Vehicle Owners Card --}}
+                <div class="col-12 col-md-6 col-xl-3 d-flex">
+                    <a href="{{ route('admin.corprate.corprate_list', ['type' => 'owner']) }}"
+                        class="w-100 text-decoration-none text-dark">
+                        <div class="card flex-fill">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col mb-2">
+                                        <h5 class="card-title mb-0">Vehicle Owners</h5>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <h3 class="mt-0 mb-0 fw-bold">{{ isset($all[0]) ? $all[0]->total ?? 0 : 0 }}</h3>
+                                    <div class="mb-0"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
                 </div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <h3 class="mt-0 mb-0 fw-bold">{{ isset($all[0]) ? $all[0]->total ?? 0 : 0 }}</h3>
-                    <div class="mb-0"></div>
-                </div>
-            </div>
-        </div>
-    </a>
-</div>
                 </a>
             </div>
-            
+
             <div class="row">
-    <div class="col-12 col-md-6 col-xl-3 d-flex">
-        <div class="card flex-fill">
-            <div class="card-body d-flex align-items-center">
-                <div class="row m-0 p-0 g-0">
-                    <div class="col">
-                        <h5 class="card-title text-dark mb-0">Registration Amount</h5>
-                        <h3 class="mt-3 mb-0 pb-0 fw-bold">₹ {{ number_format($amounts['registration'] ?? 0, 2) }}</h3>
+                <div class="col-12 col-md-6 col-xl-3 d-flex">
+                    <div class="card flex-fill">
+                        <div class="card-body d-flex align-items-center">
+                            <div class="row m-0 p-0 g-0">
+                                <div class="col">
+                                    <h5 class="card-title text-dark mb-0">Registration Amount</h5>
+                                    <h3 class="mt-3 mb-0 pb-0 fw-bold">₹
+                                        {{ number_format($amounts['registration'] ?? 0, 2) }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3 d-flex">
+                    <div class="card flex-fill">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col mb-2">
+                                    <h5 class="card-title text-dark mb-0">Full Time Driver Wallet Amount</h5>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <h3 class="mb-0 pb-0 fw-bold">₹ {{ number_format($amounts['full_time_wallet'] ?? 0, 2) }}
+                                </h3>
+                                <div class="mb-0">
+                                    {{-- <p class="text-muted mb-1">Total Referral</p>
+                                    <h4 class="text-muted mt-0 mb-0 fs-5">15</h4> --}}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3 d-flex">
+                    <div class="card flex-fill">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col mb-2">
+                                    <h5 class="card-title text-dark mb-0">Acting Driver Wallet Amount</h5>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <h3 class="mb-0 pb-0 fw-bold">₹ {{ number_format($amounts['acting_wallet'] ?? 0, 2) }}</h3>
+                                <div class="mb-0">
+                                    {{-- <p class="text-muted mb-1">Total Referral</p>
+                                    <h4 class="text-muted mt-0 mb-0 fs-5">150</h4> --}}
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3 d-flex">
+                    <div class="card flex-fill">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col mb-2">
+                                    <h5 class="card-title text-dark mb-0">Vehicle Owners Wallet Amount</h5>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-2">
+                                <h3 class="mb-0 pb-0 fw-bold">₹
+                                    {{ number_format($amounts['vehicle_owners_wallet'] ?? 0, 2) }}</h3>
+                                <div class="mb-0">
+                                    {{-- <p class="text-muted mb-1">Total Referral</p>
+                                    <h4 class="text-muted mt-0 mb-0 fs-5">15</h4> --}}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6 col-xl-3 d-flex">
-        <div class="card flex-fill">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col mb-2">
-                        <h5 class="card-title text-dark mb-0">Full Time Driver Wallet Amount</h5>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <h3 class="mb-0 pb-0 fw-bold">₹ {{ number_format($amounts['full_time_wallet'] ?? 0, 2) }}</h3>
-                    <div class="mb-0">
-                        {{-- <p class="text-muted mb-1">Total Referral</p>
-                        <h4 class="text-muted mt-0 mb-0 fs-5">15</h4> --}}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6 col-xl-3 d-flex">
-        <div class="card flex-fill">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col mb-2">
-                        <h5 class="card-title text-dark mb-0">Acting Driver Wallet Amount</h5>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <h3 class="mb-0 pb-0 fw-bold">₹ {{ number_format($amounts['acting_wallet'] ?? 0, 2) }}</h3>
-                    <div class="mb-0">
-                        {{-- <p class="text-muted mb-1">Total Referral</p>
-                        <h4 class="text-muted mt-0 mb-0 fs-5">150</h4> --}}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6 col-xl-3 d-flex">
-        <div class="card flex-fill">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col mb-2">
-                        <h5 class="card-title text-dark mb-0">Vehicle Owners Wallet Amount</h5>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <h3 class="mb-0 pb-0 fw-bold">₹ {{ number_format($amounts['vehicle_owners_wallet'] ?? 0, 2) }}</h3>
-                    <div class="mb-0">
-                        {{-- <p class="text-muted mb-1">Total Referral</p>
-                        <h4 class="text-muted mt-0 mb-0 fs-5">15</h4> --}}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
             <div class="row">
                 {{-- payment table --}}
@@ -315,10 +323,9 @@
                             <div class="card-actions float-end">
                                 <div class="dropdown position-relative">
                                     <a href="#" data-bs-toggle="dropdown" data-bs-display="static">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round"
-                                            class="feather feather-more-horizontal align-middle">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                            fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" class="feather feather-more-horizontal align-middle">
                                             <circle cx="12" cy="12" r="1"></circle>
                                             <circle cx="19" cy="12" r="1"></circle>
                                             <circle cx="5" cy="12" r="1"></circle>
@@ -364,9 +371,10 @@
             </div>
         </div>
     </main>
-    {{-- <script src="{{ asset('assets/js/jquery.js') }}"></script> --}}
+    {{--
+    <script src="{{ asset('assets/js/jquery.js') }}"></script> --}}
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             // Datatables Responsive
             $("#datatables-reponsive").DataTable({
                 responsive: true,
