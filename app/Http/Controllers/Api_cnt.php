@@ -42,103 +42,101 @@ class Api_cnt extends Controller
     }
 
 
-// public function popup(Request $request)
-// {
-//     // Get user_id from request
-//     $userId = $request->input('user_id');
+    // public function popup(Request $request)
+    // {
+    //     // Get user_id from request
+    //     $userId = $request->input('user_id');
 
-//     // Default response
-//     $response = [
-//         'version' => '0.0.6',
-//         'type'    => null,
-//         'active_status' => null,
-//     ];
+    //     // Default response
+    //     $response = [
+    //         'version' => '0.0.6',
+    //         'type'    => null,
+    //         'active_status' => null,
+    //     ];
 
-//     if ($userId) {
-//         // ✅ Try fetching from drivers table
-//         $driver = Driver::find($userId);
+    //     if ($userId) {
+    //         // ✅ Try fetching from drivers table
+    //         $driver = Driver::find($userId);
 
-//         if ($driver) {
-//             $response['type'] = $driver->type;
-//             $response['active_status'] = $driver->active_status;
-//         } else {
-//             // ✅ Try fetching from corporate table
-//             $corporate = \DB::table('corporate')->where('id', $userId)->first();
+    //         if ($driver) {
+    //             $response['type'] = $driver->type;
+    //             $response['active_status'] = $driver->active_status;
+    //         } else {
+    //             // ✅ Try fetching from corporate table
+    //             $corporate = \DB::table('corporate')->where('id', $userId)->first();
 
-//             if ($corporate) {
-//                 $response['type'] = $corporate->type;
-//                 $response['active_status'] = $corporate->active_status ?? 'active'; // default if null
-//             } else {
-//                 $response['message'] = 'User not found';
-//             }
-//         }
-//     } else {
-//         $response['message'] = 'user_id is required';
-//     }
+    //             if ($corporate) {
+    //                 $response['type'] = $corporate->type;
+    //                 $response['active_status'] = $corporate->active_status ?? 'active'; // default if null
+    //             } else {
+    //                 $response['message'] = 'User not found';
+    //             }
+    //         }
+    //     } else {
+    //         $response['message'] = 'user_id is required';
+    //     }
 
-//     return response()->json($response, 200);
-// }
-public function popup(Request $request)
-{
-    // Get user_id from request
-    $userId = $request->input('user_id');
+    //     return response()->json($response, 200);
+    // }
+    public function popup(Request $request)
+    {
+        // Get user_id from request
+        $userId = $request->input('user_id');
 
-    // Default response
-    $response = [
-        'version'       => '0.0.8',
-        'type'          => null,
-        'active_status' => null,
-        'exp_date'      => null, // ✅ Only date
-    ];
+        // Default response
+        $response = [
+            'version'       => '0.0.8',
+            'type'          => null,
+            'active_status' => null,
+            'exp_date'      => null, // ✅ Only date
+        ];
 
-    if ($userId) {
-        // ✅ Try fetching from drivers table
-        $driver = Driver::find($userId);
+        if ($userId) {
+            // ✅ Try fetching from drivers table
+            $driver = Driver::find($userId);
 
-        if ($driver) {
-            $response['type'] = $driver->type;
-            $response['active_status'] = $driver->active_status;
+            if ($driver) {
+                $response['type'] = $driver->type;
+                $response['active_status'] = $driver->active_status;
 
-            // ✅ Fetch latest subscription for this driver
-            $subscription = \DB::table('subscription')
-                ->where('f_id', $userId)
-                ->where('type', $driver->type)
-                ->orderByDesc('id')
-                ->first();
-
-            if ($subscription) {
-                $response['exp_date'] = \Carbon\Carbon::parse($subscription->exp_date)->toDateString();
-            }
-
-        } else {
-            // ✅ Try fetching from corporate table
-            $corporate = \DB::table('corporate')->where('id', $userId)->first();
-
-            if ($corporate) {
-                $response['type'] = $corporate->type;
-                $response['active_status'] = $corporate->active_status ?? 'active';
-
-                // ✅ Fetch latest subscription for corporate
+                // ✅ Fetch latest subscription for this driver
                 $subscription = \DB::table('subscription')
                     ->where('f_id', $userId)
-                    ->where('type', $corporate->type)
+                    ->where('type', $driver->type)
                     ->orderByDesc('id')
                     ->first();
 
                 if ($subscription) {
                     $response['exp_date'] = \Carbon\Carbon::parse($subscription->exp_date)->toDateString();
                 }
-
             } else {
-                $response['message'] = 'User not found';
-            }
-        }
-    } else {
-        $response['message'] = 'user_id is required';
-    }
+                // ✅ Try fetching from corporate table
+                $corporate = \DB::table('corporate')->where('id', $userId)->first();
 
-    return response()->json($response, 200);
-}
+                if ($corporate) {
+                    $response['type'] = $corporate->type;
+                    $response['active_status'] = $corporate->active_status ?? 'active';
+
+                    // ✅ Fetch latest subscription for corporate
+                    $subscription = \DB::table('subscription')
+                        ->where('f_id', $userId)
+                        ->where('type', $corporate->type)
+                        ->orderByDesc('id')
+                        ->first();
+
+                    if ($subscription) {
+                        $response['exp_date'] = \Carbon\Carbon::parse($subscription->exp_date)->toDateString();
+                    }
+                } else {
+                    $response['message'] = 'User not found';
+                }
+            }
+        } else {
+            $response['message'] = 'user_id is required';
+        }
+
+        return response()->json($response, 200);
+    }
 
 
 
@@ -174,226 +172,225 @@ public function popup(Request $request)
     }
 
 
-public function driver_store(Request $req)
-{
-    // log::info('Driver store request received', $req->all());
+    public function driver_store(Request $req)
+    {
+        // log::info('Driver store request received', $req->all());
 
-    $validator = Validator::make($req->all(), [
-        'type' => ['nullable', 'string'],
-        'phone' => ['nullable', 'digits_between:10,15'],
-        'location' => ['nullable', 'string'],
-        'district' => ['nullable', 'string'],
-        'gender' => ['required', 'string'],
-        'img' => ['nullable', 'url'],
-        'l_no' => ['required', 'string'],
-        'name' => ['nullable', 'string'],
-        'cof' => ['nullable', 'string'],
-        'dob' => ['nullable', 'date_format:d-m-Y'],
-        'cov' => ['nullable', 'string'],
-        'issued_rto' => ['nullable', 'string'],
-        'date_of_issue' => ['nullable', 'date_format:d-m-Y'],
-        'v_from' => ['nullable', 'date_format:d-m-Y'],
-        'v_to' => ['nullable', 'date_format:d-m-Y', 'after_or_equal:v_from'],
-        'batch_issue_date' => ['nullable', 'date_format:d-m-Y'],
-        'batch_issued_by' => ['nullable', 'string'],
-        'ad_1' => ['nullable', 'string'],
-        'city' => ['nullable', 'string'],
-        'state' => ['nullable', 'string'],
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Validation failed',
-            'errors' => $validator->errors()
-        ], 422);
-    }
-
-    try {
-        DB::beginTransaction();
-
-        // Generate reference code first
-        if ($req->type == 'acting') {
-            $count = Driver::where('type', 'acting')->count();
-            $ref_code = 'DDACT' . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
-        } else {
-            $count = Driver::where('type', 'permanent')->count();
-            $ref_code = 'DDPER' . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
-        }
-
-        // Create Driver first (without image)
-        $driver = Driver::create([
-            'name' => $req->name ?? null,
-            'type' => $req->type ?? null,
-            'img' => null, // Will update this after image processing
-            'phone' => $req->phone ?? null,
-            'gender' => $req->gender ?? null,
-            'location' => $req->location,
-            'district' => $req->district,
-            'ref_code' => $ref_code ?? null,
-            'l_no' => $req->l_no,
-            'c_by' => auth('sanctum')->id(),
+        $validator = Validator::make($req->all(), [
+            'type' => ['nullable', 'string'],
+            'phone' => ['nullable', 'digits_between:10,15'],
+            'location' => ['nullable', 'string'],
+            'district' => ['nullable', 'string'],
+            'gender' => ['required', 'string'],
+            'img' => ['nullable', 'url'],
+            'l_no' => ['required', 'string'],
+            'name' => ['nullable', 'string'],
+            'cof' => ['nullable', 'string'],
+            'dob' => ['nullable', 'date_format:d-m-Y'],
+            'cov' => ['nullable', 'string'],
+            'issued_rto' => ['nullable', 'string'],
+            'date_of_issue' => ['nullable', 'date_format:d-m-Y'],
+            'v_from' => ['nullable', 'date_format:d-m-Y'],
+            'v_to' => ['nullable', 'date_format:d-m-Y', 'after_or_equal:v_from'],
+            'batch_issue_date' => ['nullable', 'date_format:d-m-Y'],
+            'batch_issued_by' => ['nullable', 'string'],
+            'ad_1' => ['nullable', 'string'],
+            'city' => ['nullable', 'string'],
+            'state' => ['nullable', 'string'],
         ]);
 
-        // Now handle image download with driver ID
-        $storedImgPath = null;
-        if ($req->img) {
-            try {
-                $imageContents = file_get_contents($req->img);
-                if ($imageContents) {
-                    // Get file extension from URL
-                    $extension = pathinfo(parse_url($req->img, PHP_URL_PATH), PATHINFO_EXTENSION);
-                    
-                    // Slugify the name to remove spaces and symbols
-                    $safeName = Str::slug($req->name);
-                    
-                    // Create filename with driver ID: keerthi-raj-123.jpg
-                    $filename = $safeName . '-' . $driver->driver_id . '.' . $extension;
-                    
-                    $destinationPath = public_path('licenses');
-
-                    if (!File::exists($destinationPath)) {
-                        File::makeDirectory($destinationPath, 0755, true);
-                    }
-
-                    $fullPath = $destinationPath . '/' . $filename;
-                    file_put_contents($fullPath, $imageContents);
-
-                    // Set path to be stored in DB
-                    $storedImgPath = 'licenses/' . $filename;
-                    
-                    // Update the driver record with the image path
-                    $driver->update(['img' => $storedImgPath]);
-                }
-            } catch (\Exception $e) {
-                Log::error("Image download failed: " . $e->getMessage());
-            }
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
         }
 
-        // Handle referral logic
-        if ($req->ref_by_code) {
-            if (Str::startsWith($req->ref_by_code, 'DDOWN')) {
-                $ref_driver = Corporate::where('ref_code', $req->ref_by_code)->first();
+        try {
+            DB::beginTransaction();
+
+            // Generate reference code first
+            if ($req->type == 'acting') {
+                $count = Driver::where('type', 'acting')->count();
+                $ref_code = 'DDACT' . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
             } else {
-                $ref_driver = Driver::where('ref_code', $req->ref_by_code)->first();
+                $count = Driver::where('type', 'permanent')->count();
+                $ref_code = 'DDPER' . str_pad($count + 1, 3, '0', STR_PAD_LEFT);
             }
 
-            // Insert referral record
-            DB::table('referal')->insert([
-                'code' => $req->ref_by_code ?? 'direct',
-                'ref_type' => $ref_driver->type ?? 0,
-                'ref_by' => $ref_driver->id ?? 0,
-                'f_type' => $driver->type ?? 1,
-                'f_id' => $driver->id ?? 1,
-                'amt' => $ref_driver ? 10 : 0,
-                'c_by' => $driver->id ?? 1,
+            // Create Driver first (without image)
+            $driver = Driver::create([
+                'name' => $req->name ?? null,
+                'type' => $req->type ?? null,
+                'img' => null, // Will update this after image processing
+                'phone' => $req->phone ?? null,
+                'gender' => $req->gender ?? null,
+                'location' => $req->location,
+                'district' => $req->district,
+                'ref_code' => $ref_code ?? null,
+                'l_no' => $req->l_no,
+                'c_by' => auth('sanctum')->id(),
+            ]);
+
+            // Now handle image download with driver ID
+            $storedImgPath = null;
+            if ($req->img) {
+                try {
+                    $imageContents = file_get_contents($req->img);
+                    if ($imageContents) {
+                        // Get file extension from URL
+                        $extension = pathinfo(parse_url($req->img, PHP_URL_PATH), PATHINFO_EXTENSION);
+
+                        // Slugify the name to remove spaces and symbols
+                        $safeName = Str::slug($req->name);
+
+                        // Create filename with driver ID: keerthi-raj-123.jpg
+                        $filename = $safeName . '-' . $driver->driver_id . '.' . $extension;
+
+                        $destinationPath = public_path('licenses');
+
+                        if (!File::exists($destinationPath)) {
+                            File::makeDirectory($destinationPath, 0755, true);
+                        }
+
+                        $fullPath = $destinationPath . '/' . $filename;
+                        file_put_contents($fullPath, $imageContents);
+
+                        // Set path to be stored in DB
+                        $storedImgPath = 'licenses/' . $filename;
+
+                        // Update the driver record with the image path
+                        $driver->update(['img' => $storedImgPath]);
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Image download failed: " . $e->getMessage());
+                }
+            }
+
+            // Handle referral logic
+            if ($req->ref_by_code) {
+                if (Str::startsWith($req->ref_by_code, 'DDOWN')) {
+                    $ref_driver = Corporate::where('ref_code', $req->ref_by_code)->first();
+                } else {
+                    $ref_driver = Driver::where('ref_code', $req->ref_by_code)->first();
+                }
+
+                // Insert referral record
+                DB::table('referal')->insert([
+                    'code' => $req->ref_by_code ?? 'direct',
+                    'ref_type' => $ref_driver->type ?? 0,
+                    'ref_by' => $ref_driver->id ?? 0,
+                    'f_type' => $driver->type ?? 1,
+                    'f_id' => $driver->id ?? 1,
+                    'amt' => $ref_driver ? 10 : 0,
+                    'c_by' => $driver->id ?? 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
+            }
+
+            // OTP generation and SMS logic
+            $id = $driver->id;
+            $phone = $req->phone;
+            $otp = $phone === '1234567890' ? 1234 : rand(1000, 9999);
+            $type = strtolower($req->type ?? '');
+
+            $token = $driver ? $driver->createToken('auth_token')->plainTextToken : null;
+
+            // OTP update based on type
+            if (in_array($type, ['permanent', 'acting'])) {
+                DB::table('driver')->where('phone', $phone)->update(['otp' => $otp]);
+            } elseif ($type === 'owner') {
+                DB::table('corporate')->where('contact', $phone)->update(['otp' => $otp]);
+
+                DB::commit();
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'OTP sent successfully',
+                    'otp' => $otp,
+                ], 200);
+            }
+
+            // Send OTP using SMS
+            $authKey = "3636736465636b35323233";
+            $senderId = "DRDECK";
+            $route = "2";
+            $country = "91";
+            $dltTeId = "1707175066512828187";
+            $message = urlencode("Dear user, your DriversDeck registration OTP is $otp. Please do not share this with anyone. - DRDECK");
+            $url = "http://promo.smso2.com/api/sendhttp.php?authkey=$authKey&mobiles=$phone&message=$message&sender=$senderId&route=$route&country=$country&DLT_TE_ID=$dltTeId";
+
+            file_get_contents($url);
+
+            // Create Driver Details
+            DB::table('driver_details')->insert([
+                'd_id' => $driver->id,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
-        }
 
-        // OTP generation and SMS logic
-        $id = $driver->id;
-        $phone = $req->phone;
-        $otp = $phone === '1234567890' ? 1234 : rand(1000, 9999);
-        $type = strtolower($req->type ?? '');
+            // Safe date conversion function
+            $safeDateConvert = function ($date) {
+                try {
+                    return $date ? Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d') : null;
+                } catch (\Exception $e) {
+                    Log::error("Date conversion failed: " . $e->getMessage());
+                    return null;
+                }
+            };
 
-        $token = $driver ? $driver->createToken('auth_token')->plainTextToken : null;
+            // Build license data
+            $licenseData = [
+                'd_id' => $driver->id,
+                'dob' => $safeDateConvert($req->dob ?? null),
+                'cof' => $req->cof ?? null,
+                'cov' => $req->cov ?? null,
+                'l_no' => $req->l_no,
+                'issued_rto' => $req->issued_rto ?? null,
+                'date_of_issue' => $safeDateConvert($req->date_of_issue ?? null),
+                'v_from' => $safeDateConvert($req->v_from ?? null),
+                'v_to' => $safeDateConvert($req->v_to ?? null),
+                'batch_issue_date' => $safeDateConvert($req->batch_issue_date ?? null),
+                'batch_issued_by' => $req->batch_issued_by ?? null,
+                'ad_1' => $req->ad_1 ?? null,
+                'city' => $req->city ?? null,
+                'state' => $req->state ?? null,
+                'c_by' => auth('sanctum')->user()->id ?? 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ];
 
-        // OTP update based on type
-        if (in_array($type, ['permanent', 'acting'])) {
-            DB::table('driver')->where('phone', $phone)->update(['otp' => $otp]);
-        } elseif ($type === 'owner') {
-            DB::table('corporate')->where('contact', $phone)->update(['otp' => $otp]);
-            
+            // Insert License
+            DB::table('license')->insert($licenseData);
+
             DB::commit();
 
             return response()->json([
                 'status' => true,
-                'message' => 'OTP sent successfully',
+                'message' => 'Driver created successfully',
+                'type' => $req->type,
+                'driver_id' => $driver->id,
                 'otp' => $otp,
+                'img' => $storedImgPath ? url($storedImgPath) : null,
+                'phn' => $req->phone,
+                'name' => $req->name,
+                'ref_code' => $ref_code,
+                'token' => $token,
+                'gender' => $req->gender,
+            ], 200);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error("Driver creation failed: " . $e->getMessage());
+
+            return response()->json([
+                'status' => false,
+                'message' => 'Driver creation failed',
+                'error' => $e->getMessage()
             ], 200);
         }
-
-        // Send OTP using SMS
-        $authKey = "your_auth_key_here";
-        $senderId = "DRDECK";
-        $route = "2";
-        $country = "91";
-        $dltTeId = "1707175066512828187";
-        $message = urlencode("Dear user, your DriversDeck registration OTP is $otp. Please do not share this with anyone. - DRDECK");
-        $url = "http://promo.smso2.com/api/sendhttp.php?authkey=$authKey&mobiles=$phone&message=$message&sender=$senderId&route=$route&country=$country&DLT_TE_ID=$dltTeId";
-
-        file_get_contents($url);
-
-        // Create Driver Details
-        DB::table('driver_details')->insert([
-            'd_id' => $driver->id,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        // Safe date conversion function
-        $safeDateConvert = function ($date) {
-            try {
-                return $date ? Carbon::createFromFormat('d-m-Y', $date)->format('Y-m-d') : null;
-            } catch (\Exception $e) {
-                Log::error("Date conversion failed: " . $e->getMessage());
-                return null;
-            }
-        };
-
-        // Build license data
-        $licenseData = [
-            'd_id' => $driver->id,
-            'dob' => $safeDateConvert($req->dob ?? null),
-            'cof' => $req->cof ?? null,
-            'cov' => $req->cov ?? null,
-            'l_no' => $req->l_no,
-            'issued_rto' => $req->issued_rto ?? null,
-            'date_of_issue' => $safeDateConvert($req->date_of_issue ?? null),
-            'v_from' => $safeDateConvert($req->v_from ?? null),
-            'v_to' => $safeDateConvert($req->v_to ?? null),
-            'batch_issue_date' => $safeDateConvert($req->batch_issue_date ?? null),
-            'batch_issued_by' => $req->batch_issued_by ?? null,
-            'ad_1' => $req->ad_1 ?? null,
-            'city' => $req->city ?? null,
-            'state' => $req->state ?? null,
-            'c_by' => auth('sanctum')->user()->id ?? 1,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ];
-
-        // Insert License
-        DB::table('license')->insert($licenseData);
-
-        DB::commit();
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Driver created successfully',
-            'type' => $req->type,
-            'driver_id' => $driver->id,
-            'otp' => $otp,
-            'img' => $storedImgPath ? url($storedImgPath) : null,
-            'phn' => $req->phone,
-            'name' => $req->name,
-            'ref_code' => $ref_code,
-            'token' => $token,
-            'gender' => $req->gender,
-        ], 200);
-        
-    } catch (\Exception $e) {
-        DB::rollBack();
-        Log::error("Driver creation failed: " . $e->getMessage());
-
-        return response()->json([
-            'status' => false,
-            'message' => 'Driver creation failed',
-            'error' => $e->getMessage()
-        ], 200);
     }
-}
 
 
 
@@ -480,13 +477,13 @@ public function driver_store(Request $req)
                     ->where('d_id', $driver->id)
                     ->exists();
 
-                    $stDate = Carbon::parse($trip->st_date)->format('Y-m-d');
-                    $endDate = Carbon::parse($trip->end_date)->format('Y-m-d');
-                    $today = Carbon::today()->format('Y-m-d');
+                $stDate = Carbon::parse($trip->st_date)->format('Y-m-d');
+                $endDate = Carbon::parse($trip->end_date)->format('Y-m-d');
+                $today = Carbon::today()->format('Y-m-d');
 
-                    if ($alreadyApplied || $stDate < $today || $endDate < $today) {
-                        continue;
-                    }
+                if ($alreadyApplied || $stDate < $today || $endDate < $today) {
+                    continue;
+                }
                 // Check if trip is saved
                 $saved = DB::table('saved_jobs')
                     ->where('trip_id', $trip->id)
@@ -798,8 +795,8 @@ public function driver_store(Request $req)
 
         $st_city =  explode('#', $trip->st_city);
         $end_city =  explode('#', $trip->end_city);
-        
-                $isExpired = false;
+
+        $isExpired = false;
         if ($trip->end_date) {
             $isExpired = Carbon::parse($trip->end_date)->lt(Carbon::today());
         }
@@ -824,7 +821,7 @@ public function driver_store(Request $req)
             'st_city'   => $st_city[1] ?? 'N/A',
             'end_city'   => $end_city[1] ?? 'N/A',
             'driver_conflict' => $hasConflict,
-            'expired'    => $isExpired 
+            'expired'    => $isExpired
 
         ];
 
@@ -1377,195 +1374,193 @@ public function driver_store(Request $req)
     }
 
 
-   public function login(Request $request)
-{
-    $validator = Validator::make($request->all(), [
-        'phone' => 'required|numeric|digits:10',
-    ], [
-        'phone.required' => 'Phone number is required.',
-        'phone.numeric'  => 'Phone number must be numeric.',
-        'phone.digits'   => 'Phone number must be 10 digits.',
-    ]);
-
-    if ($validator->fails()) {
-        return response()->json([
-            'status' => 'error',
-            'message' => implode(', ', $validator->errors()->all()),
-        ], 200);
-    }
-
-    log::info($request->all());
-    $phone = $request->phone;
-    $otp = in_array($phone, ['1234567891', '1234567892', '1234567890']) ? 1234 : rand(1000, 9999);
-
-
-    // Try to find user in driver table
-    $driver = Driver::where('phone', $phone)->whereIn('status', ['approved', 'pending', 'Hired','rejected'])->first();
-
-    log::info($driver);
-
-    // Try to find user in corporate table
-    $corporate = Corporate::where('contact', $phone)->first();
-
-    if (!$driver && !$corporate) {
-        return response()->json([
-            'status' => false,
-            'message' => 'User not found in both Driver and Corporate tables.',
-        ], 200);
-    }
-
-    // Send OTP and update in whichever table found
-    if ($driver) {
-        Driver::where('id', $driver->id)->update([
-            'otp' => $otp,
+    public function login(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'phone' => 'required|numeric|digits:10',
+        ], [
+            'phone.required' => 'Phone number is required.',
+            'phone.numeric'  => 'Phone number must be numeric.',
+            'phone.digits'   => 'Phone number must be 10 digits.',
         ]);
-    }
 
-    if ($corporate) {
-        Corporate::where('id', $corporate->id)->update([
-            'otp' => $otp,
-        ]);
-    }
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => implode(', ', $validator->errors()->all()),
+            ], 200);
+        }
 
-    // Send OTP using SMS
-    $authKey = "3636736465636b35323233";
-    $senderId = "DRDECK";
-    $route = "2";
-    $country = "91";
-    $dltTeId = "1707175066512828187";
-    $message = urlencode("Dear user, your DriversDeck registration OTP is $otp. Please do not share this with anyone. - DRDECK");
-    $url = "http://promo.smso2.com/api/sendhttp.php?authkey=$authKey&mobiles=$phone&message=$message&sender=$senderId&route=$route&country=$country&DLT_TE_ID=$dltTeId";
+        log::info($request->all());
+        $phone = $request->phone;
+        $otp = in_array($phone, ['1234567891', '1234567892', '1234567890']) ? 1234 : rand(1000, 9999);
 
-    file_get_contents($url);
 
-    // Get subscription and user details
-    $subscription = null;
-    $expDate = null;
-    $userId = null;
-    $userType = null;
-    $subscriptionStatus = null;
-    $userName = null;
-    $imgUrl = null;
+        // Try to find user in driver table
+        $driver = Driver::where('phone', $phone)->whereIn('status', ['approved', 'pending', 'Hired', 'rejected'])->first();
 
-    if ($driver) {
-        $subscription = DB::table('subscription')
-            ->where('f_id', $driver->id)
-            ->where('type', $driver->type)
-            ->latest('id')
-            ->first();
+        log::info($driver);
 
-        $userId = $driver->id;
-        $userType = $driver->type;
-        $userName = $driver->name;
-        $gender = $driver->gender ?? 'male';
-        $subscriptionStatus = $driver->subscription ?? 'no';
+        // Try to find user in corporate table
+        $corporate = Corporate::where('contact', $phone)->first();
 
-        // Get full image URL if exists
-        // if ($driver->img) {
-        //     $correctedImgPath = str_replace('license/', 'licenses/', $driver->img);
-        //     $imagePath = public_path($correctedImgPath);
+        if (!$driver && !$corporate) {
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found in both Driver and Corporate tables.',
+            ], 200);
+        }
 
-        //     if (file_exists($imagePath)) {
-        //         $imgUrl = url($correctedImgPath);
-        //     } else {
-        //         Log::warning("Image not found at path: " . $imagePath);
-        //     }
-        // }
-        if ($driver->img) {
-    // Fix the path and ensure "public/" prefix exists
-    $correctedImgPath = str_replace('license/', 'licenses/', $driver->img);
+        // Send OTP and update in whichever table found
+        if ($driver) {
+            Driver::where('id', $driver->id)->update([
+                'otp' => $otp,
+            ]);
+        }
 
-    if (strpos($correctedImgPath, 'public/') !== 0) {
-        $correctedImgPath = 'public/' . ltrim($correctedImgPath, '/');
-    }
+        if ($corporate) {
+            Corporate::where('id', $corporate->id)->update([
+                'otp' => $otp,
+            ]);
+        }
 
-    // Local file path for validation
-    $imagePath = public_path(str_replace('public/', '', $correctedImgPath));
+        // Send OTP using SMS
+        $authKey = "3636736465636b35323233";
+        $senderId = "DRDECK";
+        $route = "2";
+        $country = "91";
+        $dltTeId = "1707175066512828187";
+        $message = urlencode("Dear user, your DriversDeck registration OTP is $otp. Please do not share this with anyone. - DRDECK");
+        $url = "http://promo.smso2.com/api/sendhttp.php?authkey=$authKey&mobiles=$phone&message=$message&sender=$senderId&route=$route&country=$country&DLT_TE_ID=$dltTeId";
 
-    if (file_exists($imagePath)) {
-        $imgUrl = url($correctedImgPath);  // URL will include public/
-    } else {
-        Log::warning("Image not found at path: " . $imagePath);
-    }
-}
+        file_get_contents($url);
 
-        
-    } elseif ($corporate) {
-        $subscription = DB::table('subscription')
-            ->where('f_id', $corporate->id)
-            ->where('type', $corporate->type)
-            ->latest('id')
-            ->first();
+        // Get subscription and user details
+        $subscription = null;
+        $expDate = null;
+        $userId = null;
+        $userType = null;
+        $subscriptionStatus = null;
+        $userName = null;
+        $imgUrl = null;
 
-        $userId = $corporate->id;
-        $userType = $corporate->type;
-        $userName = $corporate->name;
-        $gender = $corporate->gender ?? 'male';
-        $subscriptionStatus = $corporate->subscription ?? 'no';
+        if ($driver) {
+            $subscription = DB::table('subscription')
+                ->where('f_id', $driver->id)
+                ->where('type', $driver->type)
+                ->latest('id')
+                ->first();
 
-        // Get full image URL if exists
-        if (isset($corporate->logo) && $corporate->logo) {
-            $imgPath = $corporate->logo;
-            $imagePath = public_path($imgPath);
+            $userId = $driver->id;
+            $userType = $driver->type;
+            $userName = $driver->name;
+            $gender = $driver->gender ?? 'male';
+            $subscriptionStatus = $driver->subscription ?? 'no';
 
-            if (file_exists($imagePath)) {
-                $imgUrl = url($imgPath);
-            } else {
-                Log::warning("Corporate logo not found at path: " . $imagePath);
+            // Get full image URL if exists
+            // if ($driver->img) {
+            //     $correctedImgPath = str_replace('license/', 'licenses/', $driver->img);
+            //     $imagePath = public_path($correctedImgPath);
+
+            //     if (file_exists($imagePath)) {
+            //         $imgUrl = url($correctedImgPath);
+            //     } else {
+            //         Log::warning("Image not found at path: " . $imagePath);
+            //     }
+            // }
+            if ($driver->img) {
+                // Fix the path and ensure "public/" prefix exists
+                $correctedImgPath = str_replace('license/', 'licenses/', $driver->img);
+
+                if (strpos($correctedImgPath, 'public/') !== 0) {
+                    $correctedImgPath = 'public/' . ltrim($correctedImgPath, '/');
+                }
+
+                // Local file path for validation
+                $imagePath = public_path(str_replace('public/', '', $correctedImgPath));
+
+                if (file_exists($imagePath)) {
+                    $imgUrl = url($correctedImgPath);  // URL will include public/
+                } else {
+                    Log::warning("Image not found at path: " . $imagePath);
+                }
+            }
+        } elseif ($corporate) {
+            $subscription = DB::table('subscription')
+                ->where('f_id', $corporate->id)
+                ->where('type', $corporate->type)
+                ->latest('id')
+                ->first();
+
+            $userId = $corporate->id;
+            $userType = $corporate->type;
+            $userName = $corporate->name;
+            $gender = $corporate->gender ?? 'male';
+            $subscriptionStatus = $corporate->subscription ?? 'no';
+
+            // Get full image URL if exists
+            if (isset($corporate->logo) && $corporate->logo) {
+                $imgPath = $corporate->logo;
+                $imagePath = public_path($imgPath);
+
+                if (file_exists($imagePath)) {
+                    $imgUrl = url($imgPath);
+                } else {
+                    Log::warning("Corporate logo not found at path: " . $imagePath);
+                }
             }
         }
-    }
 
-    $expDate = $subscription ? $subscription->exp_date : null;
+        $expDate = $subscription ? $subscription->exp_date : null;
 
-    // Check subscription expiration
-    $subscriptionExpired = false;
-    $subscriptionMessage = '';
+        // Check subscription expiration
+        $subscriptionExpired = false;
+        $subscriptionMessage = '';
 
-    if ($subscription && $expDate) {
-        $currentDate = now()->format('Y-m-d');
-        $expirationDate = \Carbon\Carbon::parse($expDate)->format('Y-m-d');
-        
-        if ($expirationDate < $currentDate) {
+        if ($subscription && $expDate) {
+            $currentDate = now()->format('Y-m-d');
+            $expirationDate = \Carbon\Carbon::parse($expDate)->format('Y-m-d');
+
+            if ($expirationDate < $currentDate) {
+                $subscriptionExpired = true;
+                $subscriptionMessage = 'Your subscription has expired on ' . \Carbon\Carbon::parse($expDate)->format('d-m-Y') . '. Please renew your subscription to continue.';
+            }
+        } elseif (!$subscription) {
             $subscriptionExpired = true;
-            $subscriptionMessage = 'Your subscription has expired on ' . \Carbon\Carbon::parse($expDate)->format('d-m-Y') . '. Please renew your subscription to continue.';
+            $subscriptionMessage = 'No active subscription found. Please purchase a subscription to continue.';
         }
-    } elseif (!$subscription) {
-        $subscriptionExpired = true;
-        $subscriptionMessage = 'No active subscription found. Please purchase a subscription to continue.';
+
+        $ref_code = null;
+
+        if ($driver && isset($driver->ref_code)) {
+            $ref_code = $driver->ref_code;
+        } elseif ($corporate && isset($corporate->ref_code)) {
+            $ref_code = $corporate->ref_code;
+        }
+
+        $token = ($driver ?: $corporate)->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'status' => true,
+            'message' => 'OTP sent successfully',
+            'data' => [
+                'id' => $userId,
+                'name' => $userName,
+                'gender' => $gender,
+                'type' => $userType,
+                'subscription_sts' => $subscriptionStatus,
+                'subscription_expired' => $subscriptionExpired,
+                'subscription_message' => $subscriptionMessage,
+                'exp_date' => $expDate,
+                'l_img' => $imgUrl,
+                'otp' => $otp, // Remove in production
+                'ref_code' => $ref_code,
+                'token' => $token ?? 1,
+                'active_status' => $driver ? $driver->active_status : ($corporate->active_status ?? null) // ✅ added here
+
+            ]
+        ], 200);
     }
-
-    $ref_code = null;
-
-    if ($driver && isset($driver->ref_code)) {
-        $ref_code = $driver->ref_code;
-    } elseif ($corporate && isset($corporate->ref_code)) {
-        $ref_code = $corporate->ref_code;
-    }
-
-    $token = ($driver ?: $corporate)->createToken('auth_token')->plainTextToken;
-
-    return response()->json([
-        'status' => true,
-        'message' => 'OTP sent successfully',
-        'data' => [
-            'id' => $userId,
-            'name' => $userName,
-            'gender' => $gender,
-            'type' => $userType,
-            'subscription_sts' => $subscriptionStatus,
-            'subscription_expired' => $subscriptionExpired,
-            'subscription_message' => $subscriptionMessage,
-            'exp_date' => $expDate,
-            'l_img' => $imgUrl,
-            'otp' => $otp, // Remove in production
-            'ref_code' => $ref_code,
-            'token' => $token ?? 1,
-            'active_status' => $driver ? $driver->active_status : ($corporate->active_status ?? null)// ✅ added here
-
-        ]
-    ], 200);
-}
 
 
 
@@ -2242,91 +2237,91 @@ public function driver_store(Request $req)
     //         'subscription_sts' => $user->subscription,
     //     ], 200);
     // }
-public function acting_trip_list(Request $request)
-{
-    $user = auth('sanctum')->user();
-    $driverId = $user->id;
+    public function acting_trip_list(Request $request)
+    {
+        $user = auth('sanctum')->user();
+        $driverId = $user->id;
 
-    // Get trips the driver applied for with status Hired or Start
-    $appliedTrips = TripApplied::join('trip', 'trip.id', '=', 'trip_applied.trip_id')
-        ->where('trip_applied.d_id', $driverId)
-        ->whereIn('trip_applied.status', ['Hired', 'Start'])
-        ->select('trip.*', 'trip_applied.d_id')
-        ->orderBy('trip.created_at', 'desc')
-        ->get();
+        // Get trips the driver applied for with status Hired or Start
+        $appliedTrips = TripApplied::join('trip', 'trip.id', '=', 'trip_applied.trip_id')
+            ->where('trip_applied.d_id', $driverId)
+            ->whereIn('trip_applied.status', ['Hired', 'Start'])
+            ->select('trip.*', 'trip_applied.d_id')
+            ->orderBy('trip.created_at', 'desc')
+            ->get();
 
-    $currentTrips = [];
-    $upcomingTrips = [];
+        $currentTrips = [];
+        $upcomingTrips = [];
 
-    foreach ($appliedTrips as $trip) {
-        if ((Carbon::parse($trip->st_date)->format('Y-m-d') < Carbon::today()->format('Y-m-d'))) {
-            continue; // Skip if trip date is in the past
+        foreach ($appliedTrips as $trip) {
+            if ((Carbon::parse($trip->st_date)->format('Y-m-d') < Carbon::today()->format('Y-m-d'))) {
+                continue; // Skip if trip date is in the past
+            }
+
+            $tripData = [
+                'id'         => $trip->id,
+                'owner_id'   => $trip->c_by,
+                'title'      => $trip->title,
+                'st_loc'     => $trip->st_city,
+                'st_dest'    => $trip->end_city,
+                'st_date'    => $trip->st_date ? Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
+                'end_date'   => $trip->end_date ? Carbon::parse($trip->end_date)->format('d/m/Y') : 'N/A',
+                'st_time'    => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
+                'status'     => $trip->status ?? 'N/A',
+                'created_at' => $trip->created_at ? Carbon::parse($trip->created_at)->format('Y-m-d H:i:s') : 'N/A',
+            ];
+
+            if ($trip->status === 'Start') {
+                $currentTrips[] = $tripData;
+            } elseif ($trip->status === 'Hired') {
+                $upcomingTrips[] = $tripData;
+            }
         }
 
-        $tripData = [
-            'id'         => $trip->id,
-            'owner_id'   => $trip->c_by,
-            'title'      => $trip->title,
-            'st_loc'     => $trip->st_city,
-            'st_dest'    => $trip->end_city,
-            'st_date'    => $trip->st_date ? Carbon::parse($trip->st_date)->format('d/m/Y') : 'N/A',
-            'end_date'   => $trip->end_date ? Carbon::parse($trip->end_date)->format('d/m/Y') : 'N/A',
-            'st_time'    => $trip->st_time ? Carbon::parse($trip->st_time)->format('H:i') : 'N/A',
-            'status'     => $trip->status ?? 'N/A',
-            'created_at' => $trip->created_at ? Carbon::parse($trip->created_at)->format('Y-m-d H:i:s') : 'N/A',
+        // Count how many trips this driver completed (status = End in trip_applied)
+        $completedCount = DB::table('trip_applied')
+            ->where('d_id', $driverId)
+            ->where('status', 'End')
+            ->count();
+
+        // Get completion percentage
+        $completion = $this->apiPermanent->completion();
+
+        // Get driver status and reason if rejected or pending
+        $driverStatus = $user->status;
+        $reason = null;
+
+        if (in_array($driverStatus, ['rejected', 'pending'])) {
+            $action = $driverStatus === 'rejected' ? 'reject' : 'pending';
+
+            $latestReason = \App\Models\ApprovalReason::where('user_id', $driverId)
+                ->where('user_type', $user->type)
+                ->whereRaw('LOWER(action) = ?', [strtolower($action)]) // ✅ case-insensitive match
+                ->latest()
+                ->first();
+
+            $reason = $latestReason ? $latestReason->reason : null;
+        }
+
+        $d_status = [
+            'd_status' => $driverStatus,
+            'number'   => '+91 9600166427',
+            'reason'   => $reason,
         ];
 
-        if ($trip->status === 'Start') {
-            $currentTrips[] = $tripData;
-        } elseif ($trip->status === 'Hired') {
-            $upcomingTrips[] = $tripData;
-        }
+        return response()->json([
+            'status'          => true,
+            'message'         => 'Trip list retrieved successfully.',
+            'notification'    => 0,
+            'completion'      => $completion->completion_percentage ?? 0,
+            'completed_count' => $completedCount,
+            'upcoming_count'  => count($upcomingTrips),
+            'current_trip'    => $currentTrips,
+            'upcoming_trip'   => $upcomingTrips,
+            'd_status'        => $d_status,
+            'subscription_sts' => $user->subscription,
+        ], 200);
     }
-
-    // Count how many trips this driver completed (status = End in trip_applied)
-    $completedCount = DB::table('trip_applied')
-        ->where('d_id', $driverId)
-        ->where('status', 'End')
-        ->count();
-
-    // Get completion percentage
-    $completion = $this->apiPermanent->completion();
-
-    // Get driver status and reason if rejected or pending
-    $driverStatus = $user->status;
-    $reason = null;
-
-    if (in_array($driverStatus, ['rejected', 'pending'])) {
-        $action = $driverStatus === 'rejected' ? 'reject' : 'pending';
-
-        $latestReason = \App\Models\ApprovalReason::where('user_id', $driverId)
-            ->where('user_type', $user->type)
-            ->whereRaw('LOWER(action) = ?', [strtolower($action)]) // ✅ case-insensitive match
-            ->latest()
-            ->first();
-
-        $reason = $latestReason ? $latestReason->reason : null;
-    }
-
-    $d_status = [
-        'd_status' => $driverStatus,
-        'number'   => '+91 9600166427',
-        'reason'   => $reason,
-    ];
-
-    return response()->json([
-        'status'          => true,
-        'message'         => 'Trip list retrieved successfully.',
-        'notification'    => 0,
-        'completion'      => $completion->completion_percentage ?? 0,
-        'completed_count' => $completedCount,
-        'upcoming_count'  => count($upcomingTrips),
-        'current_trip'    => $currentTrips,
-        'upcoming_trip'   => $upcomingTrips,
-        'd_status'        => $d_status,
-        'subscription_sts'=> $user->subscription,
-    ], 200);
-}
 
 
 
@@ -2424,129 +2419,128 @@ public function acting_trip_list(Request $request)
 
 
     public function getDriverSummary(Request $request)
-{
-    // Get authenticated user
-    $user = auth('sanctum')->user();
+    {
+        // Get authenticated user
+        $user = auth('sanctum')->user();
 
-    if (!$user) {
+        if (!$user) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Unauthorized access.',
+            ], 200);
+        }
+
+        $driverId = $user->id;
+
+        // Fetch feedback statistics for this driver
+        $feedbackStats = DB::table('feedback')
+            ->where('d_id', $driverId)
+            ->where('status', 'approve')
+            ->selectRaw('COUNT(*) as total_ratings, AVG(rating) as average_rating')
+            ->first();
+
+        // Get completion percentage from service/class
+        $completion = $this->apiPermanent->completion();
+
+        $updatedCount = Notify::where('f_id', $user->id)->where('type', $user->type)->where('seen', 0)->count();
+
+        $driver = Driver::find($driverId);
+
+        // Check if driver has pending type change request
+        $hasPendingTypeChangeRequest = false;
+        if ($driver) {
+            $hasPendingTypeChangeRequest = $driver->hasPendingTypeChangeRequest();
+        }
+
         return response()->json([
-            'status'  => false,
-            'message' => 'Unauthorized access.',
-        ], 200);
-    }
-
-    $driverId = $user->id;
-
-    // Fetch feedback statistics for this driver
-    $feedbackStats = DB::table('feedback')
-        ->where('d_id', $driverId)
-        ->where('status', 'approve')
-        ->selectRaw('COUNT(*) as total_ratings, AVG(rating) as average_rating')
-        ->first();
-
-    // Get completion percentage from service/class
-    $completion = $this->apiPermanent->completion();
-
-    $updatedCount = Notify::where('f_id', $user->id)->where('type', $user->type)->where('seen', 0)->count();
-
-    $driver = Driver::find($driverId);
-    
-    // Check if driver has pending type change request
-    $hasPendingTypeChangeRequest = false;
-    if ($driver) {
-        $hasPendingTypeChangeRequest = $driver->hasPendingTypeChangeRequest();
-    }
-
-    return response()->json([
-        'status'        => true,
-        'message'       => 'Driver summary retrieved successfully.',
-        'd_id'          => $driverId,
-        'notification'  => $updatedCount,
-        'completion'    => $completion->completion_percentage ?? 0,
-        'ratings'       => $feedbackStats->total_ratings ?? 0,
-        'avg_rating'    => round($feedbackStats->average_rating, 2) ?? 0,
-        'pending_status' => $hasPendingTypeChangeRequest,
-    ]);
-}
-
-
-public function switchDriverType(Request $request)
-{
-    $user = auth('sanctum')->user();
-    if (!$user) {
-        return response()->json([
-            'status'  => false,
-            'message' => 'Unauthorized access.',
-        ], 200);
-    }
-
-    $driver = Driver::find($user->id);
-    if (!$driver) {
-        return response()->json([
-            'status'  => false,
-            'message' => 'Driver not found.',
-        ], 200);
-    }
-
-    // Check if driver already has a pending request
-    if ($driver->hasPendingTypeChangeRequest()) {
-        $pendingRequest = $driver->pendingTypeChangeRequest;
-        return response()->json([
-            'status'  => false,
-            'message' => 'You already have a pending type change request.',
-            'pending_request' => [
-                'request_id' => $pendingRequest->id,
-                'current_type' => $pendingRequest->previous_type,
-                'requested_to' => $pendingRequest->change_type_to,
-                'request_date' => $pendingRequest->created_at->format('d-m-Y'),
-            ]
-        ], 200);
-    }
-
-    // Determine target type
-    $targetType = null;
-    if ($driver->type === 'acting') {
-        $targetType = 'permanent';
-    } elseif ($driver->type === 'permanent') {
-        $targetType = 'acting';
-    } else {
-        return response()->json([
-            'status'  => false,
-            'message' => 'Invalid driver type. Only acting and permanent drivers can switch types.',
-        ], 200);
-    }
-
-    // Create new type change request
-    try {
-        $changeRequest = DriverTypeChangeRequest::create([
-            'driver_id' => $driver->id,
-            'previous_type' => $driver->type,
-            'change_type_to' => $targetType,
-            'request_status' => 'pending',
+            'status'        => true,
+            'message'       => 'Driver summary retrieved successfully.',
+            'd_id'          => $driverId,
+            'notification'  => $updatedCount,
+            'completion'    => $completion->completion_percentage ?? 0,
+            'ratings'       => $feedbackStats->total_ratings ?? 0,
+            'avg_rating'    => round($feedbackStats->average_rating, 2) ?? 0,
+            'pending_status' => $hasPendingTypeChangeRequest,
         ]);
-
-        return response()->json([
-            'status' => true,
-            'message' => 'Type change request submitted successfully. Waiting for admin approval.',
-            'request_details' => [
-                'request_id' => $changeRequest->id,
-                'driver_id' => $driver->id,
-                'driver_name' => $driver->name,
-                'current_type' => $driver->type,
-                'requested_to' => $changeRequest->change_type_to,
-                'request_status' => $changeRequest->request_status,
-                'request_date' => $changeRequest->created_at->format('d-m-Y H:i:s'),
-            ]
-        ], 200);
-
-    } catch (\Exception $e) {
-        return response()->json([
-            'status' => false,
-            'message' => 'Failed to submit type change request. Please try again.',
-            'error' => $e->getMessage()
-        ], 500);
     }
-}
+
+
+    public function switchDriverType(Request $request)
+    {
+        $user = auth('sanctum')->user();
+        if (!$user) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Unauthorized access.',
+            ], 200);
+        }
+
+        $driver = Driver::find($user->id);
+        if (!$driver) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Driver not found.',
+            ], 200);
+        }
+
+        // Check if driver already has a pending request
+        if ($driver->hasPendingTypeChangeRequest()) {
+            $pendingRequest = $driver->pendingTypeChangeRequest;
+            return response()->json([
+                'status'  => false,
+                'message' => 'You already have a pending type change request.',
+                'pending_request' => [
+                    'request_id' => $pendingRequest->id,
+                    'current_type' => $pendingRequest->previous_type,
+                    'requested_to' => $pendingRequest->change_type_to,
+                    'request_date' => $pendingRequest->created_at->format('d-m-Y'),
+                ]
+            ], 200);
+        }
+
+        // Determine target type
+        $targetType = null;
+        if ($driver->type === 'acting') {
+            $targetType = 'permanent';
+        } elseif ($driver->type === 'permanent') {
+            $targetType = 'acting';
+        } else {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Invalid driver type. Only acting and permanent drivers can switch types.',
+            ], 200);
+        }
+
+        // Create new type change request
+        try {
+            $changeRequest = DriverTypeChangeRequest::create([
+                'driver_id' => $driver->id,
+                'previous_type' => $driver->type,
+                'change_type_to' => $targetType,
+                'request_status' => 'pending',
+            ]);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Type change request submitted successfully. Waiting for admin approval.',
+                'request_details' => [
+                    'request_id' => $changeRequest->id,
+                    'driver_id' => $driver->id,
+                    'driver_name' => $driver->name,
+                    'current_type' => $driver->type,
+                    'requested_to' => $changeRequest->change_type_to,
+                    'request_status' => $changeRequest->request_status,
+                    'request_date' => $changeRequest->created_at->format('d-m-Y H:i:s'),
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to submit type change request. Please try again.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
 
@@ -2629,21 +2623,21 @@ public function switchDriverType(Request $request)
             'data' => 'Updated Successfully'
         ]);
     }
-    public function available_districts() {
-    // Fetch distinct districts from location_active (only active ones)
-    $districts = DB::table('district as d')
-        ->join('location_active as l', 'd.id', '=', 'l.district')
-        ->where('d.status', 'active')
-        ->where('l.status', 'active')
-        ->select('d.id as district_id', 'd.district as district_name')
-        ->distinct()
-        ->orderBy('d.district')
-        ->get();
+    public function available_districts()
+    {
+        // Fetch distinct districts from location_active (only active ones)
+        $districts = DB::table('district as d')
+            ->join('location_active as l', 'd.id', '=', 'l.district')
+            ->where('d.status', 'active')
+            ->where('l.status', 'active')
+            ->select('d.id as district_id', 'd.district as district_name')
+            ->distinct()
+            ->orderBy('d.district')
+            ->get();
 
-    return response()->json([
-        'message' => 'Available active districts fetched successfully',
-        'data' => $districts
-    ]);
-}
-
+        return response()->json([
+            'message' => 'Available active districts fetched successfully',
+            'data' => $districts
+        ]);
+    }
 }

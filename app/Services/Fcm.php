@@ -47,7 +47,7 @@ class Fcm
             Log::error('projects_messages property is not set on FirebaseCloudMessaging client.');
             return ['error' => 'Firebase messaging client misconfigured'];
         }
- 
+
         // $imageurl = 'https://driversdeck.in/assets/images/logo/Turuck_1.jpg'; 
 
         // Build notification payload
@@ -76,7 +76,7 @@ class Fcm
                         'body' => $body,
                         // 'image' => $imageurl,
                     ],
-                    'sound' => 'sound', 
+                    'sound' => 'sound',
                     'content-available' => 1,
                 ],
             ],
@@ -115,3 +115,145 @@ class Fcm
         }
     }
 }
+
+
+//////////////////////////
+
+
+
+// <?php
+
+// namespace App\Services;
+
+// use Google\Client;
+// use Google\Service\FirebaseCloudMessaging;
+// use Google\Service\FirebaseCloudMessaging\Message;
+// use Google\Service\FirebaseCloudMessaging\Notification;
+// use Google\Service\FirebaseCloudMessaging\AndroidConfig;
+// use Google\Service\FirebaseCloudMessaging\ApnsConfig;
+// use Google\Service\FirebaseCloudMessaging\SendMessageRequest;
+// use Illuminate\Support\Facades\Log;
+
+// class Fcm
+// {
+//     protected Client $client;
+//     protected FirebaseCloudMessaging $messaging;
+//     protected string $projectId;
+
+//     public function __construct()
+//     {
+//         $serviceAccountPath = storage_path('app/firebase.json');
+
+//         if (!file_exists($serviceAccountPath)) {
+//             throw new \Exception('firebase.json not found');
+//         }
+
+//         $serviceAccount = json_decode(
+//             file_get_contents($serviceAccountPath),
+//             true
+//         );
+
+//         if (empty($serviceAccount['project_id'])) {
+//             throw new \Exception('project_id missing in firebase.json');
+//         }
+
+//         $this->projectId = $serviceAccount['project_id'];
+
+//         // Google Client
+//         $this->client = new Client();
+//         $this->client->setAuthConfig($serviceAccountPath);
+
+//         // âœ… CORRECT SCOPE (MOST IMPORTANT)
+//         $this->client->addScope(
+//             'https://www.googleapis.com/auth/firebase.messaging'
+//         );
+
+//         $this->messaging = new FirebaseCloudMessaging($this->client);
+
+//         Log::info('âœ… FCM service initialized for project: ' . $this->projectId);
+//     }
+
+//     public function send_notify(string $token, string $title, string $body): array
+//     {
+//         try {
+//             Log::info("ðŸ“¨ Sending FCM notification", [
+//                 'token' => $token,
+//                 'title' => $title
+//             ]);
+
+//             // Notification
+//             $notification = new Notification([
+//                 'title' => $title,
+//                 'body'  => $body,
+//             ]);
+
+//             // Android config
+//             $androidConfig = new AndroidConfig([
+//                 'priority' => 'high',
+//                 'notification' => [
+//                     'sound' => 'default',
+//                     'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+//                 ],
+//             ]);
+
+//             // iOS config
+//             $apnsConfig = new ApnsConfig([
+//                 'payload' => [
+//                     'aps' => [
+//                         'alert' => [
+//                             'title' => $title,
+//                             'body'  => $body,
+//                         ],
+//                         'sound' => 'default',
+//                         'content-available' => 1,
+//                     ],
+//                 ],
+//             ]);
+
+//             // Data payload (important for background click)
+//             $dataPayload = [
+//                 'click_action' => 'FLUTTER_NOTIFICATION_CLICK',
+//                 'screen' => 'home',
+//             ];
+
+//             // Message
+//             $message = new Message([
+//                 'token' => $token,
+//                 'notification' => $notification,
+//                 'data' => $dataPayload,
+//                 'android' => $androidConfig,
+//                 'apns' => $apnsConfig,
+//             ]);
+
+//             $request = new SendMessageRequest([
+//                 'message' => $message,
+//             ]);
+
+//             // Send
+//             $response = $this->messaging
+//                 ->projects_messages
+//                 ->send(
+//                     'projects/' . $this->projectId,
+//                     $request
+//                 );
+
+//             Log::info('âœ… FCM sent successfully', [
+//                 'response' => $response
+//             ]);
+
+//             return [
+//                 'status' => true,
+//                 'message' => 'Notification sent'
+//             ];
+//         } catch (\Throwable $e) {
+//             Log::error('ðŸ”¥ FCM error', [
+//                 'error' => $e->getMessage()
+//             ]);
+
+//             return [
+//                 'status' => false,
+//                 'error' => $e->getMessage()
+//             ];
+//         }
+//     }
+// }

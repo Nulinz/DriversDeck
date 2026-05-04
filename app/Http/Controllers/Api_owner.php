@@ -126,7 +126,6 @@ class Api_owner extends Controller
             // }
         }
 
-
         $token = $corporate ? $corporate->createToken('auth_token')->plainTextToken : null;
 
         // Optionally, update the 'c_by' field with the correct ID if needed
